@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # Service PostgreSQL
+    #! Service PostgreSQL
     services:
       postgres:
         image: postgres:15
@@ -33,7 +33,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: '1.24'
 
     - name: Install dependencies
       run: go mod download

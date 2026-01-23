@@ -23,6 +23,24 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+//! Role constants
+const (
+	RoleAdmin   = "admin"
+	RoleTeacher = "teacher"
+	RoleStudent = "student"
+	RoleParent  = "parent"
+)
+
+//! User status constants
+const (
+	UserStatusPending   = "pending"
+	UserStatusApproved  = "approved"
+	UserStatusRejected  = "rejected"
+	UserStatusInactive  = "inactive"
+	UserStatusSuspended = "suspended"
+)
+
+
 //! NewUser crée un nouvel utilisateur avec validation
 func NewUser(schoolID int, email, password, firstName, lastName, phone, role string) (*User, error) {
 	if email == "" {
@@ -57,7 +75,7 @@ func NewUser(schoolID int, email, password, firstName, lastName, phone, role str
 		LastName:     lastName,
 		Phone:        phone,
 		Role:         role,
-		Status:       "pending", //! Par défaut pending
+		Status:       UserStatusPending,
 	}, nil
 }
 
@@ -67,7 +85,8 @@ func NewAdminUser(schoolID int, email, password, firstName, lastName, phone stri
 	if err != nil {
 		return nil, err
 	}
-	user.Status = "approved"
+	user.Status = UserStatusApproved
+	user.UpdatedAt = time.Now()
 	return user, nil
 }
 
@@ -79,23 +98,58 @@ func (u *User) VerifyPassword(password string) bool {
 
 //! Approve approuve l'utilisateur
 func (u *User) Approve() {
-	u.Status = "approved"
+	u.Status = UserStatusApproved
+	u.UpdatedAt = time.Now()
 }
 
 //! Reject rejette l'utilisateur
 func (u *User) Reject() {
-	u.Status = "rejected"
+	u.Status = UserStatusRejected
+	u.UpdatedAt = time.Now()
+}
+
+//! Suspend deactivates the user account
+func (u *User) Suspend() {
+	u.Status = UserStatusSuspended
+	u.UpdatedAt = time.Now()
+}
+
+//! Deactivate désactive l'utilisateur
+func (u *User) Deactivate() {
+	u.Status = UserStatusInactive
+	u.UpdatedAt = time.Now()
 }
 
 //! IsApproved vérifie si l'utilisateur est approuvé
 func (u *User) IsApproved() bool {
-	return u.Status == "approved"
+	return u.Status == UserStatusApproved
+}
+
+//! IsPending checks if user is waiting for approval
+func (u *User) IsPending() bool {
+	return u.Status == UserStatusPending
+}
+
+//! IsRejected vérifie si l'utilisateur est rejeté
+func (u *User) IsRejected() bool {
+	return u.Status == UserStatusRejected
 }
 
 //! IsAdmin vérifie si l'utilisateur est admin
 func (u *User) IsAdmin() bool {
-	return u.Role == "admin"
+	return u.Role == RoleAdmin
 }
+
+//! IsTeacher checks if user is a teacher
+func (u *User) IsTeacher() bool {
+	return u.Role == RoleTeacher
+}
+
+//! IsStudent checks if user is a student
+func (u *User) IsStudent() bool {
+	return u.Role == RoleStudent
+}
+
 
 //! GetFullName retourne le nom complet
 func (u *User) GetFullName() string {

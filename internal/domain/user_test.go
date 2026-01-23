@@ -80,6 +80,7 @@ func TestNewUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// schoolID int, email, password, firstName, lastName, phone, role string
 			user, err := NewUser(
 				tt.schoolID,
 				tt.email,
@@ -207,5 +208,102 @@ func TestUser_GetFullName(t *testing.T) {
 				t.Errorf("GetFullName() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+
+func TestUserRoles(t *testing.T) {
+	tests := []struct {
+		name string
+		role string
+		want bool
+	}{
+		{"Valid admin", RoleAdmin, true},
+		{"Valid teacher", RoleTeacher, true},
+		{"Valid student", RoleStudent, true},
+		{"Valid parent", RoleParent, true},
+		{"Invalid role", "invalid", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// schoolID int, email, password, firstName, lastName, phone, role string
+			user, err := NewUser(
+				1,
+				"test@example.com",
+				"password123",
+				"John",
+				"Doe",
+				"+261 34",
+				tt.role,
+			)
+			if tt.want && err != nil {
+				t.Errorf("Expected valid role, got error: %v", err)
+			}
+			if !tt.want && err == nil {
+				t.Errorf("Expected error for invalid role, got nil")
+			}
+			if tt.want && user != nil && user.Role != tt.role {
+				t.Errorf("Expected role %s, got %s", tt.role, user.Role)
+			}
+		})
+	}
+}
+
+func TestUserStatus(t *testing.T) {
+	// schoolID int, email, password, firstName, lastName, phone, role string
+	user, _ := NewUser(1, "test@example.com", "password123", "John", "Doe", "+261 34", RoleTeacher)
+
+	//! Default status should be pending
+	if user.Status != UserStatusPending {
+		t.Errorf("Expected default status to be pending, got %s", user.Status)
+	}
+
+	if !user.IsPending() {
+		t.Error("Expected IsPending() to return true")
+	}
+
+	//! Test approval
+	user.Approve()
+	if user.Status != UserStatusApproved {
+		t.Errorf("Expected status to be approved after approval, got %s", user.Status)
+	}
+
+	if !user.IsApproved() {
+		t.Error("Expected IsApproved() to return true after approval")
+	}
+
+	//! Test suspension
+	user.Suspend()
+	if user.Status != UserStatusSuspended {
+		t.Errorf("Expected status to be suspended, got %s", user.Status)
+	}
+}
+
+func TestUserRoleChecks(t *testing.T) {
+	// schoolID int, email, password, firstName, lastName, phone string
+	admin, _ := NewAdminUser(1, "admin@test.com", "password123", "Admin", "User", "+261 34")
+	teacher, _ := NewUser(1, "teacher@test.com", "password123", "Teacher", "User", "+261 34", RoleTeacher)
+	student, _ := NewUser(1, "student@test.com", "password123", "Student", "User", "+261 34", RoleStudent)
+
+	if !admin.IsAdmin() {
+		t.Error("Expected admin.IsAdmin() to return true")
+	}
+
+	if !teacher.IsTeacher() {
+		t.Error("Expected teacher.IsTeacher() to return true")
+	}
+
+	if !student.IsStudent() {
+		t.Error("Expected student.IsStudent() to return true")
+	}
+
+	//! Cross-checks
+	if teacher.IsAdmin() {
+		t.Error("Expected teacher.IsAdmin() to return false")
+	}
+
+	if student.IsTeacher() {
+		t.Error("Expected student.IsTeacher() to return false")
 	}
 }

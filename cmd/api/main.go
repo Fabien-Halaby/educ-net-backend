@@ -32,6 +32,10 @@ func main() {
 	//! 3. Initialize repositories (Data layer)
 	schoolRepo := repository.NewSchoolRepository(database)
 	userRepo := repository.NewUserRepository(database)
+	subjectRepo := repository.NewSubjectRepository(database)
+	classRepo := repository.NewClassRepository(database)
+	teacherSubjectRepo := repository.NewTeacherSubjectRepository(database)
+	studentClassRepo := repository.NewStudentClassRepository(database)
 
 	//! 4. Initialize use cases (Business logic layer)
 	schoolUseCase := usecase.NewSchoolUseCase(
@@ -40,9 +44,25 @@ func main() {
 		userRepo,
 		cfg.JWT.Secret,
 	)
+	teacherUseCase := usecase.NewTeacherUseCase(
+		database,
+		userRepo,
+		schoolRepo,
+		subjectRepo,
+		teacherSubjectRepo,
+	)
+	studentUseCase := usecase.NewStudentUseCase(
+		database,
+		userRepo,
+		schoolRepo,
+		classRepo,
+		studentClassRepo,
+	)
 
 	//! 5. Initialize handlers (Presentation layer)
 	schoolHandler := handler.NewSchoolHandler(schoolUseCase)
+	teacherHandler := handler.NewTeacherHandler(teacherUseCase)
+	studentHandler := handler.NewStudentHandler(studentUseCase)
 
 	//! 6. Setup router
 	r := mux.NewRouter()
@@ -59,6 +79,12 @@ func main() {
 
 	//! School routes
 	api.HandleFunc("/schools/register", schoolHandler.CreateSchool).Methods("POST")
+
+	//! Teacher routes
+	api.HandleFunc("/teachers/register", teacherHandler.Register).Methods("POST")
+
+	//! Student routes
+	api.HandleFunc("/students/register", studentHandler.Register).Methods("POST")
 
 	//! 9. Start server
 	addr := ":" + cfg.Server.Port

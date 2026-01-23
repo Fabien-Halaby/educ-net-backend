@@ -22,20 +22,20 @@ test-db:
 test-coverage:
 	go test -coverprofile=coverage.out -covermode=atomic ./...
 	go tool cover -html=coverage.out -o coverage.html
-	@echo "✅ Coverage report: coverage.html"
+	@echo "Coverage report: coverage.html"
 
 # Setup DB de test
 setup-test-db:
-	@echo "🗄️  Creating test database..."
+	@echo "Creating test database..."
 	PGPASSWORD=$(TEST_DB_PASSWORD) psql -h localhost -U $(TEST_DB_USER) -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);" || true
 	PGPASSWORD=$(TEST_DB_PASSWORD) psql -h localhost -U $(TEST_DB_USER) -c "CREATE DATABASE $(TEST_DB_NAME);"
 	PGPASSWORD=$(TEST_DB_PASSWORD) psql -h localhost -U $(TEST_DB_USER) -d $(TEST_DB_NAME) -f migrations/001_init.sql
-	@echo "✅ Test database created"
+	@echo "Test database created"
 
 # Clean test DB
 clean-test-db:
 	PGPASSWORD=$(TEST_DB_PASSWORD) psql -h localhost -U $(TEST_DB_USER) -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
-	@echo "🗑️  Test database dropped"
+	@echo "Test database dropped"
 
 # Clean
 clean:

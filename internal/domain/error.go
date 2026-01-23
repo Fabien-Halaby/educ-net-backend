@@ -39,3 +39,12 @@ var (
 	ErrUserAlreadyExists      = NewError("USER_ALREADY_EXISTS", "User with this email already exists")
 	ErrUserInvalidPassword    = NewError("USER_INVALID_PASSWORD", "Invalid password")
 )
+
+//! Authentication errors
+var (
+	ErrInvalidCredentials   = NewError("INVALID_CREDENTIALS", "invalid credentials")
+	ErrEmailAlreadyExists   = NewError("EMAIL_ALREADY_EXISTS", "email already exists")
+	ErrInvalidEmail         = NewError("INVALID_EMAIL", "invalid email format")
+	ErrPasswordTooShort     = NewError("PASSWORD_TOO_SHORT", "password must be at least 8 characters")
+	ErrInvalidRole          = NewError("INVALID_ROLE", "invalid user role")
+)
