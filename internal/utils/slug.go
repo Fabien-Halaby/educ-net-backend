@@ -3,31 +3,47 @@ package utils
 import (
 	"regexp"
 	"strings"
+	"unicode"
+
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
-//! CreateSlug génère un slug URL-friendly depuis un texte
+// CreateSlug génère un slug URL-friendly depuis un texte
 func CreateSlug(text string) string {
-	//! Convertir en minuscule
+	// 1. Convertir en minuscule
 	slug := strings.ToLower(text)
 
-	//! Remplacer espaces par tirets
-	slug = strings.ReplaceAll(slug, " ", "-")
+	// 2. Supprimer les accents
+	slug = removeAccents(slug)
 
-	//! Garder seulement lettres, chiffres, tirets
+	// 3. Remplacer espaces et underscores par tirets
+	slug = strings.ReplaceAll(slug, " ", "-")
+	slug = strings.ReplaceAll(slug, "_", "-")
+
+	// 4. Garder seulement lettres, chiffres, tirets
 	reg := regexp.MustCompile("[^a-z0-9-]+")
 	slug = reg.ReplaceAllString(slug, "")
 
-	//! Supprimer tirets multiples
+	// 5. Supprimer tirets multiples
 	reg = regexp.MustCompile("-+")
 	slug = reg.ReplaceAllString(slug, "-")
 
-	//! Trim tirets début/fin
+	// 6. Trim tirets début/fin
 	slug = strings.Trim(slug, "-")
 
 	return slug
 }
 
-//! SplitFullName sépare un nom complet en prénom et nom
+// removeAccents supprime les accents d'un texte
+func removeAccents(s string) string {
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	result, _, _ := transform.String(t, s)
+	return result
+}
+
+// SplitFullName sépare un nom complet en prénom et nom
 func SplitFullName(fullName string) (firstName, lastName string) {
 	parts := strings.Fields(fullName)
 	if len(parts) == 0 {

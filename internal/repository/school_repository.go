@@ -81,16 +81,17 @@ func (r *schoolRepository) FindByID(id int) (*domain.School, error) {
 	`
 
 	school := &domain.School{}
+	var address, phone, email, logoURL sql.NullString
 	var adminUserID sql.NullInt64
 
 	err := r.db.QueryRow(query, id).Scan(
 		&school.ID,
 		&school.Name,
 		&school.Slug,
-		&school.Address,
-		&school.Phone,
-		&school.Email,
-		&school.LogoURL,
+		&address,
+		&phone,
+		&email,
+		&logoURL,
 		&adminUserID,
 		&school.Status,
 		&school.CreatedAt,
@@ -104,6 +105,19 @@ func (r *schoolRepository) FindByID(id int) (*domain.School, error) {
 		return nil, fmt.Errorf("failed to find school: %w", err)
 	}
 
+	// Convertir les NULL values
+	if address.Valid {
+		school.Address = address.String
+	}
+	if phone.Valid {
+		school.Phone = phone.String
+	}
+	if email.Valid {
+		school.Email = email.String
+	}
+	if logoURL.Valid {
+		school.LogoURL = logoURL.String
+	}
 	if adminUserID.Valid {
 		id := int(adminUserID.Int64)
 		school.AdminUserID = &id
@@ -120,16 +134,17 @@ func (r *schoolRepository) FindBySlug(slug string) (*domain.School, error) {
 	`
 
 	school := &domain.School{}
+	var address, phone, email, logoURL sql.NullString
 	var adminUserID sql.NullInt64
 
 	err := r.db.QueryRow(query, slug).Scan(
 		&school.ID,
 		&school.Name,
 		&school.Slug,
-		&school.Address,
-		&school.Phone,
-		&school.Email,
-		&school.LogoURL,
+		&address,
+		&phone,
+		&email,
+		&logoURL,
 		&adminUserID,
 		&school.Status,
 		&school.CreatedAt,
@@ -143,6 +158,19 @@ func (r *schoolRepository) FindBySlug(slug string) (*domain.School, error) {
 		return nil, fmt.Errorf("failed to find school: %w", err)
 	}
 
+	// Convertir les NULL values
+	if address.Valid {
+		school.Address = address.String
+	}
+	if phone.Valid {
+		school.Phone = phone.String
+	}
+	if email.Valid {
+		school.Email = email.String
+	}
+	if logoURL.Valid {
+		school.LogoURL = logoURL.String
+	}
 	if adminUserID.Valid {
 		id := int(adminUserID.Int64)
 		school.AdminUserID = &id

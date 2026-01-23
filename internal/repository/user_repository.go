@@ -59,6 +59,7 @@ func (r *userRepository) FindByID(id int) (*domain.User, error) {
 	`
 
 	user := &domain.User{}
+	var phone, avatarURL sql.NullString
 
 	err := r.db.QueryRow(query, id).Scan(
 		&user.ID,
@@ -67,9 +68,9 @@ func (r *userRepository) FindByID(id int) (*domain.User, error) {
 		&user.PasswordHash,
 		&user.FirstName,
 		&user.LastName,
-		&user.Phone,
+		&phone,
 		&user.Role,
-		&user.AvatarURL,
+		&avatarURL,
 		&user.Status,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -80,6 +81,13 @@ func (r *userRepository) FindByID(id int) (*domain.User, error) {
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	if phone.Valid {
+		user.Phone = phone.String
+	}
+	if avatarURL.Valid {
+		user.AvatarURL = avatarURL.String
 	}
 
 	return user, nil
@@ -93,6 +101,7 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 	`
 
 	user := &domain.User{}
+	var phone, avatarURL sql.NullString
 
 	err := r.db.QueryRow(query, email).Scan(
 		&user.ID,
@@ -101,9 +110,9 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 		&user.PasswordHash,
 		&user.FirstName,
 		&user.LastName,
-		&user.Phone,
+		&phone,
 		&user.Role,
-		&user.AvatarURL,
+		&avatarURL,
 		&user.Status,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -114,6 +123,13 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	if phone.Valid {
+		user.Phone = phone.String
+	}
+	if avatarURL.Valid {
+		user.AvatarURL = avatarURL.String
 	}
 
 	return user, nil
