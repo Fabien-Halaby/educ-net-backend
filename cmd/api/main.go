@@ -13,6 +13,7 @@ import (
 	"educnet/internal/repository"
 	"educnet/internal/usecase"
 	"educnet/internal/utils"
+	"educnet/internal/auth"
 )
 
 func main() {
@@ -28,6 +29,15 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer db.Close(database)
+
+	//! Initialize JWT service
+	jwtService := auth.NewJWTService(
+		cfg.JWT.Secret,
+		cfg.JWT.AccessTokenTTL,
+		cfg.JWT.RefreshTokenTTL,
+	)
+	log.Println("JWT Secret: ", cfg.JWT.Secret)
+	log.Printf("Access Token TTL: %d hours", cfg.JWT.AccessTokenTTL)
 
 	//! 3. Initialize repositories (Data layer)
 	schoolRepo := repository.NewSchoolRepository(database)
@@ -58,11 +68,18 @@ func main() {
 		classRepo,
 		studentClassRepo,
 	)
+	authUseCase := usecase.NewAuthUseCase(
+		userRepo,
+		jwtService,
+	)
 
 	//! 5. Initialize handlers (Presentation layer)
 	schoolHandler := handler.NewSchoolHandler(schoolUseCase)
 	teacherHandler := handler.NewTeacherHandler(teacherUseCase)
 	studentHandler := handler.NewStudentHandler(studentUseCase)
+	authHandler := handler.NewAuthHandler(authUseCase)
+	userHandler := handler.NewUserHandler(userRepo)
+
 
 	//! 6. Setup router
 	r := mux.NewRouter()
@@ -85,6 +102,14 @@ func main() {
 
 	//! Student routes
 	api.HandleFunc("/students/register", studentHandler.Register).Methods("POST")
+
+	//! Auth routes
+	api.HandleFunc("/auth/login", authHandler.Login).Methods("POST")
+
+	//! User routes (protected)
+	userRouter := api.PathPrefix("/me").Subrouter()
+	userRouter.Use(middleware.JWTAuth(jwtService))
+	userRouter.HandleFunc("", userHandler.GetMe).Methods("GET")
 
 	//! 9. Start server
 	addr := ":" + cfg.Server.Port

@@ -29,6 +29,9 @@ type ServerConfig struct {
 
 type JWTConfig struct {
 	Secret string
+	AccessTokenTTL   int // en heures
+	RefreshTokenTTL  int // en jours
+
 }
 
 //! Load charge la configuration depuis .env
@@ -50,6 +53,8 @@ func Load() (*Config, error) {
 		},
 		JWT: JWTConfig{
 			Secret: getEnv("JWT_SECRET", "supersecretkey"),
+			AccessTokenTTL:   24,  // 24 heures
+			RefreshTokenTTL:  30,  // 30 jours
 		},
 	}
 
