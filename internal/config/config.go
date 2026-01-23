@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
+	JWT JWTConfig
 }
 
 type DatabaseConfig struct {
@@ -24,6 +25,10 @@ type DatabaseConfig struct {
 type ServerConfig struct {
 	Port string
 	Env  string
+}
+
+type JWTConfig struct {
+	Secret string
 }
 
 //! Load charge la configuration depuis .env
@@ -42,6 +47,9 @@ func Load() (*Config, error) {
 		Server: ServerConfig{
 			Port: getEnv("PORT", "8080"),
 			Env:  getEnv("ENV", "development"),
+		},
+		JWT: JWTConfig{
+			Secret: getEnv("JWT_SECRET", "supersecretkey"),
 		},
 	}
 

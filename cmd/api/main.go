@@ -8,67 +8,71 @@ import (
 
 	"educnet/internal/config"
 	"educnet/internal/db"
-	"educnet/internal/utils"
+	"educnet/internal/handler"
 	"educnet/internal/middleware"
+	"educnet/internal/repository"
+	"educnet/internal/usecase"
+	"educnet/internal/utils"
 )
 
 func main() {
 	//! 1. Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal("Failed to load config: ", err)
+		log.Fatal("Failed to load config:", err)
 	}
 
 	//! 2. Connect to database
 	database, err := db.Connect(cfg.DSN())
 	if err != nil {
-		log.Fatal("Failed to connect to database: ", err)
+		log.Fatal("Failed to connect to database:", err)
 	}
 	defer db.Close(database)
 
-	//! 3. Setup router
+	//! 3. Initialize repositories (Data layer)
+	schoolRepo := repository.NewSchoolRepository(database)
+	userRepo := repository.NewUserRepository(database)
+
+	//! 4. Initialize use cases (Business logic layer)
+	schoolUseCase := usecase.NewSchoolUseCase(
+		database,
+		schoolRepo,
+		userRepo,
+		cfg.JWT.Secret,
+	)
+
+	//! 5. Initialize handlers (Presentation layer)
+	schoolHandler := handler.NewSchoolHandler(schoolUseCase)
+
+	//! 6. Setup router
 	r := mux.NewRouter()
 
-	//! 4. Middleware
+	//! 7. Global middleware
 	r.Use(middleware.CORS)
-	r.Use(middleware.Logging)
+	r.Use(middleware.Logger)
 
-	//! 5. Routes
+	//! 8. Routes
 	api := r.PathPrefix("/api").Subrouter()
 
 	//! Health check
-	api.HandleFunc("/health", healthCheckHandler).Methods("GET")
+	api.HandleFunc("/health", health).Methods("GET")
 
-	//! Hello World (Test de utils.Response)
-	api.HandleFunc("/hello", helloWorldHandler).Methods("GET")
+	//! School routes
+	api.HandleFunc("/schools/register", schoolHandler.CreateSchool).Methods("POST")
 
-	//! 6. Start server
+	//! 9. Start server
 	addr := ":" + cfg.Server.Port
 	log.Printf("🚀 Server starting on http://localhost%s (env: %s)\n", addr, cfg.Server.Env)
-	log.Printf("📍 Health check: http://localhost%s/api/health\n", addr)
-	log.Printf("👋 Hello World: http://localhost%s/api/hello\n", addr)
+	log.Printf("📍 Health: http://localhost%s/api/health\n", addr)
+	log.Printf("🏫 Register School: POST http://localhost%s/api/schools/register\n", addr)
 
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
 
-//! Handlers
-func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+func health(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Server is running", map[string]string{
 		"status": "healthy",
-		"env":    "development",
-	})
-}
-
-func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	utils.OK(w, "Hello from Educ-Net API!", map[string]interface{}{
-		"message": "Welcome to Educ-Net Backend",
-		"version": "1.0.0",
-		"author":  "Your Name",
-		"endpoints": []string{
-			"GET /api/health",
-			"GET /api/hello",
-		},
 	})
 }

@@ -2,37 +2,36 @@
 educ-net-backend/
 ├── cmd/
 │   └── api/
-│       └── main.go              # Application entry point
+│       └── main.go
 ├── internal/
-│   ├── models/                  # Data models
-│   │   ├── school.go
-│   │   ├── user.go
-│   │   ├── channel.go
-│   │   ├── post.go
-│   │   └── notification.go
-│   ├── handlers/                # HTTP handlers
-│   │   ├── auth.go
-│   │   ├── schools.go
-│   │   ├── users.go
-│   │   ├── channels.go
-│   │   ├── posts.go
-│   │   ├── notifications.go
-│   │   └── upload.go
-│   ├── middleware/              # HTTP middleware
-│   │   ├── auth.go
-│   │   ├── cors.go
-│   │   └── logger.go
-│   ├── database/                # Database layer
+│   ├── config/
+│   │   └── config.go
+│   ├── db/
 │   │   └── postgres.go
-│   └── websocket/               # WebSocket hub
-│       └── hub.go
-├── migrations/                  # SQL migrations
+│   ├── domain/
+│   │   ├── error.go
+│   │   ├── school.go
+│   │   └── user.go
+│   ├── repository/
+│   │   ├── school_repository.go
+│   │   └── user_repository.go
+│   ├── usecase/
+│   │   └── school_usecase.go
+│   ├── handler/
+│   │   ├── dto/
+│   │   │   └── school_dto.go
+│   │   └── school_handler.go
+│   ├── middleware/
+│   │   ├── middleware.go
+|   |   ├── cors.go
+|   |   └── logging.go
+│   └── utils/
+│       ├── response.go
+│       └── slug.go
+├── migrations/
 │   └── 001_init.sql
-├── uploads/                     # Uploaded files (gitignored)
-├── .env.example                 # Example environment config
-├── .gitignore
+├── .env
 ├── go.mod
-├── go.sum
 ├── README.md
 └── STRUCTURE.md
 ```
