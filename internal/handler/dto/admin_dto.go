@@ -40,3 +40,54 @@ type UserListInfo struct {
 	Phone     string `json:"phone,omitempty"`
 	CreatedAt string `json:"created_at"`
 }
+
+
+//! ========== SUBJECTS ==========
+
+type CreateSubjectRequest struct {
+	Name        string `json:"name"`
+	Code        string `json:"code"`
+	Description string `json:"description,omitempty"`
+}
+
+type UpdateSubjectRequest struct {
+	Name        string `json:"name"`
+	Code        string `json:"code"`
+	Description string `json:"description,omitempty"`
+}
+
+type SubjectResponse struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Code        string `json:"code"`
+	Description string `json:"description,omitempty"`
+	SchoolID    int    `json:"school_id"`
+}
+
+//! ========== CLASSES ==========
+
+type CreateClassRequest struct {
+	Name         string `json:"name"`
+	Level        string `json:"level"`
+	Section      string `json:"section,omitempty"`
+	Capacity     int    `json:"capacity"`
+	AcademicYear string `json:"academic_year"`
+}
+
+type UpdateClassRequest struct {
+	Name         string `json:"name"`
+	Level        string `json:"level"`
+	Section      string `json:"section,omitempty"`
+	Capacity     int    `json:"capacity"`
+	AcademicYear string `json:"academic_year"`
+}
+
+type ClassResponse struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Level        string `json:"level"`
+	Section      string `json:"section,omitempty"`
+	Capacity     int    `json:"capacity"`
+	AcademicYear string `json:"academic_year"`
+	SchoolID     int    `json:"school_id"`
+}

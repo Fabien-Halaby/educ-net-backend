@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"educnet/internal/domain"
 	"fmt"
+	"time"
 )
 
 type SubjectRepository interface {
@@ -11,6 +12,10 @@ type SubjectRepository interface {
 	FindByID(id int) (*domain.Subject, error)
 	FindBySchoolID(schoolID int) ([]*domain.Subject, error)
 	FindBySchoolAndCode(schoolID int, code string) (*domain.Subject, error)
+
+	Update(subject *domain.Subject) error
+	Delete(id int) error        
+	ExistsByCode(schoolID int, code string, excludeID int) (bool, error)
 }
 
 type subjectRepository struct {
@@ -151,4 +156,69 @@ func (r *subjectRepository) FindBySchoolAndCode(schoolID int, code string) (*dom
 	}
 
 	return subject, nil
+}
+
+
+
+//! Update met à jour un sujet existant
+func (r *subjectRepository) Update(subject *domain.Subject) error {
+	query := `
+		UPDATE subjects
+		SET name = $1, code = $2, description = $3, updated_at = $4
+		WHERE id = $5
+	`
+
+	_, err := r.db.Exec(
+		query,
+		subject.Name,
+		subject.Code,
+		subject.Description,
+		time.Now(),
+		subject.ID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to update subject: %w", err)
+	}
+
+	return nil
+}
+
+//! Delete supprime un sujet par son ID
+func (r *subjectRepository) Delete(id int) error {
+	query := `DELETE FROM subjects WHERE id = $1`
+
+	result, err := r.db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete subject: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return domain.ErrSubjectNotFound
+	}
+
+	return nil
+}
+
+//! ExistsByCode vérifie si un code de sujet existe déjà dans une école, en excluant un ID spécifique
+func (r *subjectRepository) ExistsByCode(schoolID int, code string, excludeID int) (bool, error) {
+	query := `
+		SELECT EXISTS(
+			SELECT 1 FROM subjects 
+			WHERE school_id = $1 AND code = $2 AND id != $3
+		)
+	`
+
+	var exists bool
+	err := r.db.QueryRow(query, schoolID, code, excludeID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check subject code: %w", err)
+	}
+
+	return exists, nil
 }

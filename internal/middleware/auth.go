@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"fmt"
 )
 
 type contextKey string
@@ -59,4 +60,43 @@ func JWTAuth(jwtService *auth.JWTService) func(http.Handler) http.Handler {
 func GetUserFromContext(ctx context.Context) (*auth.JWTClaims, bool) {
 	claims, ok := ctx.Value(UserContextKey).(*auth.JWTClaims)
 	return claims, ok
+}
+
+
+// AdminOnly vérifie que l'utilisateur est admin
+func AdminOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := GetUserFromContext(r.Context())
+		if !ok {
+			utils.Unauthorized(w, "Unauthorized")
+			return
+		}
+
+		if claims.Role != "admin" {
+			utils.Forbidden(w, "Admin access required")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// RoleRequired vérifie que l'utilisateur a le rôle spécifié
+func RoleRequired(requiredRole string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claims, ok := GetUserFromContext(r.Context())
+			if !ok {
+				utils.Unauthorized(w, "Unauthorized")
+				return
+			}
+
+			if claims.Role != requiredRole {
+				utils.Forbidden(w, fmt.Sprintf("%s access required", requiredRole))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }

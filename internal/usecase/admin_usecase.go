@@ -3,6 +3,7 @@ package usecase
 import (
 	"educnet/internal/handler/dto"
 	"educnet/internal/repository"
+	"educnet/internal/domain"
 
 	"errors"
 	"fmt"
@@ -13,6 +14,14 @@ type AdminUseCase interface {
 	ApproveUser(adminUserID, targetUserID int) error
 	RejectUser(adminUserID, targetUserID int, reason string) error
 	GetAllUsers(adminUserID int, filters map[string]string) (*dto.UserListResponse, error)
+
+	CreateSubject(adminUserID int, req *dto.CreateSubjectRequest) (*dto.SubjectResponse, error)
+	UpdateSubject(adminUserID, subjectID int, req *dto.UpdateSubjectRequest) (*dto.SubjectResponse, error)
+	DeleteSubject(adminUserID, subjectID int) error
+	
+	CreateClass(adminUserID int, req *dto.CreateClassRequest) (*dto.ClassResponse, error)
+	UpdateClass(adminUserID, classID int, req *dto.UpdateClassRequest) (*dto.ClassResponse, error)
+	DeleteClass(adminUserID, classID int) error
 }
 
 type adminUseCase struct {
@@ -202,4 +211,274 @@ func (uc *adminUseCase) GetAllUsers(adminUserID int, filters map[string]string) 
 		Users: userList,
 		Total: len(userList),
 	}, nil
+}
+
+
+//! ========== SUBJECTS ==========
+func (uc *adminUseCase) CreateSubject(adminUserID int, req *dto.CreateSubjectRequest) (*dto.SubjectResponse, error) {
+	//! 1. Verify admin
+	admin, err := uc.userRepo.FindByID(adminUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !admin.IsAdmin() {
+		return nil, errors.New("unauthorized: admin role required")
+	}
+
+	//! 2. Validate input
+	if req.Name == "" {
+		return nil, errors.New("subject name is required")
+	}
+	if req.Code == "" {
+		return nil, errors.New("subject code is required")
+	}
+
+	//! 3. Check if code already exists
+	exists, err := uc.subjectRepo.ExistsByCode(admin.SchoolID, req.Code, 0)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, fmt.Errorf("subject code '%s' already exists", req.Code)
+	}
+
+	//! 4. Create subject
+	subject, err := domain.NewSubject(admin.SchoolID, req.Name, req.Code)
+	if err != nil {
+		return nil, err
+	}
+	subject.Description = req.Description
+
+	if err := uc.subjectRepo.Create(subject); err != nil {
+		return nil, err
+	}
+
+	//! 5. Return response
+	return &dto.SubjectResponse{
+		ID:          subject.ID,
+		Name:        subject.Name,
+		Code:        subject.Code,
+		Description: subject.Description,
+		SchoolID:    subject.SchoolID,
+	}, nil
+}
+
+func (uc *adminUseCase) UpdateSubject(adminUserID, subjectID int, req *dto.UpdateSubjectRequest) (*dto.SubjectResponse, error) {
+	//! 1. Verify admin
+	admin, err := uc.userRepo.FindByID(adminUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !admin.IsAdmin() {
+		return nil, errors.New("unauthorized: admin role required")
+	}
+
+	//! 2. Get subject
+	subject, err := uc.subjectRepo.FindByID(subjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	//! 3. Verify same school
+	if subject.SchoolID != admin.SchoolID {
+		return nil, errors.New("unauthorized: cannot modify subjects from other schools")
+	}
+
+	//! 4. Validate input
+	if req.Name == "" {
+		return nil, errors.New("subject name is required")
+	}
+	if req.Code == "" {
+		return nil, errors.New("subject code is required")
+	}
+
+	//! 5. Check if new code conflicts
+	if req.Code != subject.Code {
+		exists, err := uc.subjectRepo.ExistsByCode(admin.SchoolID, req.Code, subjectID)
+		if err != nil {
+			return nil, err
+		}
+		if exists {
+			return nil, fmt.Errorf("subject code '%s' already exists", req.Code)
+		}
+	}
+
+	//! 6. Update subject
+	subject.Name = req.Name
+	subject.Code = req.Code
+	subject.Description = req.Description
+
+	if err := uc.subjectRepo.Update(subject); err != nil {
+		return nil, err
+	}
+
+	//! 7. Return response
+	return &dto.SubjectResponse{
+		ID:          subject.ID,
+		Name:        subject.Name,
+		Code:        subject.Code,
+		Description: subject.Description,
+		SchoolID:    subject.SchoolID,
+	}, nil
+}
+
+func (uc *adminUseCase) DeleteSubject(adminUserID, subjectID int) error {
+	//! 1. Verify admin
+	admin, err := uc.userRepo.FindByID(adminUserID)
+	if err != nil {
+		return err
+	}
+
+	if !admin.IsAdmin() {
+		return errors.New("unauthorized: admin role required")
+	}
+
+	//! 2. Get subject
+	subject, err := uc.subjectRepo.FindByID(subjectID)
+	if err != nil {
+		return err
+	}
+
+	//! 3. Verify same school
+	if subject.SchoolID != admin.SchoolID {
+		return errors.New("unauthorized: cannot delete subjects from other schools")
+	}
+
+	//! 4. Delete subject
+	return uc.subjectRepo.Delete(subjectID)
+}
+
+//! ========== CLASSES ==========
+
+func (uc *adminUseCase) CreateClass(adminUserID int, req *dto.CreateClassRequest) (*dto.ClassResponse, error) {
+	//! 1. Verify admin
+	admin, err := uc.userRepo.FindByID(adminUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !admin.IsAdmin() {
+		return nil, errors.New("unauthorized: admin role required")
+	}
+
+	//! 2. Validate input
+	if req.Name == "" {
+		return nil, errors.New("class name is required")
+	}
+	if req.Level == "" {
+		return nil, errors.New("class level is required")
+	}
+	if req.AcademicYear == "" {
+		return nil, errors.New("academic year is required")
+	}
+	if req.Capacity <= 0 {
+		req.Capacity = 40 //! Default
+	}
+
+	//! 3. Create class
+	class, err := domain.NewClass(admin.SchoolID, req.Name, req.Level, req.AcademicYear)
+	if err != nil {
+		return nil, err
+	}
+	class.Section = req.Section
+	class.Capacity = req.Capacity
+
+	if err := uc.classRepo.Create(class); err != nil {
+		return nil, err
+	}
+
+	//! 4. Return response
+	return &dto.ClassResponse{
+		ID:           class.ID,
+		Name:         class.Name,
+		Level:        class.Level,
+		Section:      class.Section,
+		Capacity:     class.Capacity,
+		AcademicYear: class.AcademicYear,
+		SchoolID:     class.SchoolID,
+	}, nil
+}
+
+func (uc *adminUseCase) UpdateClass(adminUserID, classID int, req *dto.UpdateClassRequest) (*dto.ClassResponse, error) {
+	//! 1. Verify admin
+	admin, err := uc.userRepo.FindByID(adminUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !admin.IsAdmin() {
+		return nil, errors.New("unauthorized: admin role required")
+	}
+
+	//! 2. Get class
+	class, err := uc.classRepo.FindByID(classID)
+	if err != nil {
+		return nil, err
+	}
+
+	//! 3. Verify same school
+	if class.SchoolID != admin.SchoolID {
+		return nil, errors.New("unauthorized: cannot modify classes from other schools")
+	}
+
+	//! 4. Validate input
+	if req.Name == "" {
+		return nil, errors.New("class name is required")
+	}
+	if req.Level == "" {
+		return nil, errors.New("class level is required")
+	}
+	if req.AcademicYear == "" {
+		return nil, errors.New("academic year is required")
+	}
+
+	//! 5. Update class
+	class.Name = req.Name
+	class.Level = req.Level
+	class.Section = req.Section
+	class.Capacity = req.Capacity
+	class.AcademicYear = req.AcademicYear
+
+	if err := uc.classRepo.Update(class); err != nil {
+		return nil, err
+	}
+
+	//! 6. Return response
+	return &dto.ClassResponse{
+		ID:           class.ID,
+		Name:         class.Name,
+		Level:        class.Level,
+		Section:      class.Section,
+		Capacity:     class.Capacity,
+		AcademicYear: class.AcademicYear,
+		SchoolID:     class.SchoolID,
+	}, nil
+}
+
+func (uc *adminUseCase) DeleteClass(adminUserID, classID int) error {
+	//! 1. Verify admin
+	admin, err := uc.userRepo.FindByID(adminUserID)
+	if err != nil {
+		return err
+	}
+
+	if !admin.IsAdmin() {
+		return errors.New("unauthorized: admin role required")
+	}
+
+	//! 2. Get class
+	class, err := uc.classRepo.FindByID(classID)
+	if err != nil {
+		return err
+	}
+
+	//! 3. Verify same school
+	if class.SchoolID != admin.SchoolID {
+		return errors.New("unauthorized: cannot delete classes from other schools")
+	}
+
+	//! 4. Delete class
+	return uc.classRepo.Delete(classID)
 }

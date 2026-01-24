@@ -4,6 +4,7 @@ import (
 	"educnet/internal/middleware"
 	"educnet/internal/usecase"
 	"educnet/internal/utils"
+	"educnet/internal/handler/dto"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -119,4 +120,161 @@ func (h *AdminHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.OK(w, "Users retrieved", resp)
+}
+
+
+// ========== SUBJECTS ==========
+
+// POST /api/admin/subjects
+func (h *AdminHandler) CreateSubject(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	var req dto.CreateSubjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	resp, err := h.adminUC.CreateSubject(claims.UserID, &req)
+	if err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.Created(w, "Subject created successfully", resp)
+}
+
+// PUT /api/admin/subjects/{id}
+func (h *AdminHandler) UpdateSubject(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	vars := mux.Vars(r)
+	subjectID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequest(w, "Invalid subject ID")
+		return
+	}
+
+	var req dto.UpdateSubjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	resp, err := h.adminUC.UpdateSubject(claims.UserID, subjectID, &req)
+	if err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.OK(w, "Subject updated successfully", resp)
+}
+
+// DELETE /api/admin/subjects/{id}
+func (h *AdminHandler) DeleteSubject(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	vars := mux.Vars(r)
+	subjectID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequest(w, "Invalid subject ID")
+		return
+	}
+
+	if err := h.adminUC.DeleteSubject(claims.UserID, subjectID); err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.OK(w, "Subject deleted successfully", nil)
+}
+
+// ========== CLASSES ==========
+
+// POST /api/admin/classes
+func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	var req dto.CreateClassRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	resp, err := h.adminUC.CreateClass(claims.UserID, &req)
+	if err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.Created(w, "Class created successfully", resp)
+}
+
+// PUT /api/admin/classes/{id}
+func (h *AdminHandler) UpdateClass(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	vars := mux.Vars(r)
+	classID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequest(w, "Invalid class ID")
+		return
+	}
+
+	var req dto.UpdateClassRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	resp, err := h.adminUC.UpdateClass(claims.UserID, classID, &req)
+	if err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.OK(w, "Class updated successfully", resp)
+}
+
+// DELETE /api/admin/classes/{id}
+func (h *AdminHandler) DeleteClass(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	vars := mux.Vars(r)
+	classID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequest(w, "Invalid class ID")
+		return
+	}
+
+	if err := h.adminUC.DeleteClass(claims.UserID, classID); err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.OK(w, "Class deleted successfully", nil)
 }
