@@ -72,6 +72,13 @@ func main() {
 		userRepo,
 		jwtService,
 	)
+	adminUseCase := usecase.NewAdminUseCase(
+		userRepo,
+		teacherSubjectRepo,
+		studentClassRepo,
+		subjectRepo,
+		classRepo,
+	)
 
 	//! 5. Initialize handlers (Presentation layer)
 	schoolHandler := handler.NewSchoolHandler(schoolUseCase)
@@ -79,7 +86,7 @@ func main() {
 	studentHandler := handler.NewStudentHandler(studentUseCase)
 	authHandler := handler.NewAuthHandler(authUseCase)
 	userHandler := handler.NewUserHandler(userRepo)
-
+	adminHandler := handler.NewAdminHandler(adminUseCase)
 
 	//! 6. Setup router
 	r := mux.NewRouter()
@@ -106,10 +113,16 @@ func main() {
 	//! Auth routes
 	api.HandleFunc("/auth/login", authHandler.Login).Methods("POST")
 
-	//! User routes (protected)
-	userRouter := api.PathPrefix("/me").Subrouter()
-	userRouter.Use(middleware.JWTAuth(jwtService))
-	userRouter.HandleFunc("", userHandler.GetMe).Methods("GET")
+	//! Protected routes
+	protected := api.PathPrefix("/").Subrouter()
+	protected.Use(middleware.JWTAuth(jwtService))
+	//! User routes
+	protected.HandleFunc("/me", userHandler.GetMe).Methods("GET")
+	//! Admin routes
+	protected.HandleFunc("/admin/users/pending", adminHandler.GetPendingUsers).Methods("GET")
+	protected.HandleFunc("/admin/users/{id}/approve", adminHandler.ApproveUser).Methods("POST")
+	protected.HandleFunc("/admin/users/{id}/reject", adminHandler.RejectUser).Methods("POST")
+	protected.HandleFunc("/admin/users", adminHandler.GetAllUsers).Methods("GET")
 
 	//! 9. Start server
 	addr := ":" + cfg.Server.Port

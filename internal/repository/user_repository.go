@@ -13,6 +13,10 @@ type UserRepository interface {
 	FindByID(id int) (*domain.User, error)
 	FindByEmail(email string) (*domain.User, error)
 	ExistsByEmail(email string) (bool, error)
+
+	Update(user *domain.User) error
+	FindPendingBySchool(schoolID int) ([]*domain.User, error)
+	FindBySchool(schoolID int, filters map[string]string) ([]*domain.User, error)
 }
 
 //! userRepository implémentation
@@ -145,4 +149,141 @@ func (r *userRepository) ExistsByEmail(email string) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+
+
+
+func (r *userRepository) Update(user *domain.User) error {
+	query := `
+		UPDATE users
+		SET status = $1, updated_at = $2
+		WHERE id = $3
+	`
+
+	_, err := r.db.Exec(query, user.Status, user.UpdatedAt, user.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return nil
+}
+
+func (r *userRepository) FindPendingBySchool(schoolID int) ([]*domain.User, error) {
+	query := `
+		SELECT id, school_id, email, password_hash, first_name, last_name, 
+		    phone, role, avatar_url, status, created_at, updated_at
+		FROM users
+		WHERE school_id = $1 AND status = 'pending'
+		ORDER BY created_at DESC
+	`
+
+	rows, err := r.db.Query(query, schoolID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find pending users: %w", err)
+	}
+	defer rows.Close()
+
+	users := []*domain.User{}
+	for rows.Next() {
+		user := &domain.User{}
+		var phone, avatarURL sql.NullString
+
+		err := rows.Scan(
+			&user.ID,
+			&user.SchoolID,
+			&user.Email,
+			&user.PasswordHash,
+			&user.FirstName,
+			&user.LastName,
+			&phone,
+			&user.Role,
+			&avatarURL,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+
+		if phone.Valid {
+			user.Phone = phone.String
+		}
+		if avatarURL.Valid {
+			user.AvatarURL = avatarURL.String
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (r *userRepository) FindBySchool(schoolID int, filters map[string]string) ([]*domain.User, error) {
+	query := `
+		SELECT id, school_id, email, password_hash, first_name, last_name, 
+		    phone, role, avatar_url, status, created_at, updated_at
+		FROM users
+		WHERE school_id = $1
+	`
+
+	args := []interface{}{schoolID}
+	argCount := 1
+
+	//! Applliquer la filtre
+	if role, ok := filters["role"]; ok && role != "" {
+		argCount++
+		query += fmt.Sprintf(" AND role = $%d", argCount)
+		args = append(args, role)
+	}
+
+	if status, ok := filters["status"]; ok && status != "" {
+		argCount++
+		query += fmt.Sprintf(" AND status = $%d", argCount)
+		args = append(args, status)
+	}
+
+	query += " ORDER BY created_at DESC"
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find users: %w", err)
+	}
+	defer rows.Close()
+
+	users := []*domain.User{}
+	for rows.Next() {
+		user := &domain.User{}
+		var phone, avatarURL sql.NullString
+
+		err := rows.Scan(
+			&user.ID,
+			&user.SchoolID,
+			&user.Email,
+			&user.PasswordHash,
+			&user.FirstName,
+			&user.LastName,
+			&phone,
+			&user.Role,
+			&avatarURL,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+
+		if phone.Valid {
+			user.Phone = phone.String
+		}
+		if avatarURL.Valid {
+			user.AvatarURL = avatarURL.String
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }
