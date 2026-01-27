@@ -3,6 +3,7 @@ package domain
 import (
 	"regexp"
 	"time"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -178,4 +179,21 @@ func isValidRole(role string) bool {
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
+}
+
+// SetPassword hash et définit un nouveau mot de passe
+func (u *User) SetPassword(password string) error {
+	if len(password) < 8 {
+		return ErrPasswordTooShort
+	}
+
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	u.PasswordHash = string(hashedPassword)
+	u.UpdatedAt = time.Now()
+	
+	return nil
 }

@@ -22,6 +22,8 @@ type AdminUseCase interface {
 	CreateClass(adminUserID int, req *dto.CreateClassRequest) (*dto.ClassResponse, error)
 	UpdateClass(adminUserID, classID int, req *dto.UpdateClassRequest) (*dto.ClassResponse, error)
 	DeleteClass(adminUserID, classID int) error
+
+	GetDashboard(adminUserID int) (*dto.DashboardResponse, error)
 }
 
 type adminUseCase struct {
@@ -481,4 +483,83 @@ func (uc *adminUseCase) DeleteClass(adminUserID, classID int) error {
 
 	//! 4. Delete class
 	return uc.classRepo.Delete(classID)
+}
+
+func (uc *adminUseCase) GetDashboard(adminUserID int) (*dto.DashboardResponse, error) {
+	// 1. Verify admin
+	admin, err := uc.userRepo.FindByID(adminUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !admin.IsAdmin() {
+		return nil, errors.New("unauthorized: admin role required")
+	}
+
+	// 2. Get all users from school
+	allUsers, err := uc.userRepo.FindBySchool(admin.SchoolID, map[string]string{})
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Calculate stats
+	stats := dto.DashboardStats{}
+	stats.TotalUsers = len(allUsers)
+
+	for _, user := range allUsers {
+		switch user.Role {
+		case "teacher":
+			stats.TotalTeachers++
+		case "student":
+			stats.TotalStudents++
+		case "admin":
+			stats.TotalAdmins++
+		}
+
+		switch user.Status {
+		case "pending":
+			stats.PendingUsers++
+		case "approved":
+			stats.ApprovedUsers++
+		case "rejected":
+			stats.RejectedUsers++
+		}
+	}
+
+	// 4. Get subjects and classes count
+	subjects, _ := uc.subjectRepo.FindBySchoolID(admin.SchoolID)
+	stats.TotalSubjects = len(subjects)
+
+	classes, _ := uc.classRepo.FindBySchoolID(admin.SchoolID)
+	stats.TotalClasses = len(classes)
+
+	// 5. Get pending users (limit 5 for dashboard)
+	pendingUsers, err := uc.userRepo.FindPendingBySchool(admin.SchoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	pendingList := []dto.PendingUserInfo{}
+	limit := 5
+	if len(pendingUsers) < limit {
+		limit = len(pendingUsers)
+	}
+
+	for i := 0; i < limit; i++ {
+		user := pendingUsers[i]
+		pendingList = append(pendingList, dto.PendingUserInfo{
+			ID:        user.ID,
+			Email:     user.Email,
+			FullName:  user.GetFullName(),
+			Role:      user.Role,
+			Phone:     user.Phone,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return &dto.DashboardResponse{
+		Stats:        stats,
+		PendingUsers: pendingList,
+	}, nil
 }

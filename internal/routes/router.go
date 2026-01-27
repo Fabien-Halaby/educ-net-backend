@@ -11,7 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Handlers struct pour passer aux sous-routeurs
 type Handlers struct {
 	School  *handler.SchoolHandler
 	Teacher *handler.TeacherHandler
@@ -19,14 +18,14 @@ type Handlers struct {
 	Auth    *handler.AuthHandler
 	User    *handler.UserHandler
 	Admin   *handler.AdminHandler
+	Profile *handler.ProfileHandler 
 }
 
-// SetupRouter configure toutes les routes de l'application
-func SetupRouter(
+func NewRouter(
 	db *sql.DB,
 	jwtService *auth.JWTService,
-	jwtSecret string, // ✅ AJOUTÉ
-	// Repositories
+	jwtSecret string,
+	//! REPOSITORIES
 	schoolRepo repository.SchoolRepository,
 	userRepo repository.UserRepository,
 	subjectRepo repository.SubjectRepository,
@@ -35,14 +34,15 @@ func SetupRouter(
 	studentClassRepo repository.StudentClassRepository,
 ) *mux.Router {
 
-	// ========== INITIALIZE USE CASES ==========
+	//! ========== USECASES ==========
 	schoolUseCase := usecase.NewSchoolUseCase(db, schoolRepo, userRepo, jwtSecret) // ✅ FIXÉ
 	teacherUseCase := usecase.NewTeacherUseCase(db, userRepo, schoolRepo, subjectRepo, teacherSubjectRepo)
 	studentUseCase := usecase.NewStudentUseCase(db, userRepo, schoolRepo, classRepo, studentClassRepo)
 	authUseCase := usecase.NewAuthUseCase(userRepo, jwtService)
 	adminUseCase := usecase.NewAdminUseCase(userRepo, teacherSubjectRepo, studentClassRepo, subjectRepo, classRepo)
+	profileUseCase := usecase.NewProfileUseCase(userRepo, subjectRepo, classRepo, teacherSubjectRepo, studentClassRepo)
 
-	// ========== INITIALIZE HANDLERS ==========
+	//! ========== HANDLERS ==========
 	handlers := &Handlers{
 		School:  handler.NewSchoolHandler(schoolUseCase),
 		Teacher: handler.NewTeacherHandler(teacherUseCase),
@@ -50,24 +50,22 @@ func SetupRouter(
 		Auth:    handler.NewAuthHandler(authUseCase),
 		User:    handler.NewUserHandler(userRepo),
 		Admin:   handler.NewAdminHandler(adminUseCase),
+		Profile: handler.NewProfileHandler(profileUseCase),
 	}
 
-	// ========== SETUP ROUTER ==========
 	r := mux.NewRouter()
 
-	// Global middleware
 	r.Use(middleware.CORS)
 	r.Use(middleware.Logger)
 
-	// API prefix
 	api := r.PathPrefix("/api").Subrouter()
 
-	// ========== SETUP SUB-ROUTERS ==========
+	//! ========== SUB-ROUTERS ==========
 	SetupPublicRoutes(api, handlers)
 	SetupUserRoutes(api, handlers, jwtService)
 	SetupAdminRoutes(api, handlers, jwtService)
-	// SetupTeacherRoutes(api, handlers, jwtService)  // À venir
-	// SetupStudentRoutes(api, handlers, jwtService)  // À venir
+	// SetupTeacherRoutes(api, handlers, jwtService)
+	// SetupStudentRoutes(api, handlers, jwtService)
 
 	return r
 }

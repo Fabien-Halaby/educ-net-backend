@@ -154,20 +154,52 @@ func (r *userRepository) ExistsByEmail(email string) (bool, error) {
 
 
 
+// func (r *userRepository) Update(user *domain.User) error {
+// 	query := `
+// 		UPDATE users
+// 		SET status = $1, updated_at = $2
+// 		WHERE id = $3
+// 	`
+
+// 	_, err := r.db.Exec(query, user.Status, user.UpdatedAt, user.ID)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to update user: %w", err)
+// 	}
+
+// 	return nil
+// }
 func (r *userRepository) Update(user *domain.User) error {
 	query := `
 		UPDATE users
-		SET status = $1, updated_at = $2
-		WHERE id = $3
+		SET first_name = $1, 
+		    last_name = $2, 
+		    phone = $3, 
+		    avatar_url = $4, 
+		    password_hash = $5,
+		    status = $6, 
+		    updated_at = $7
+		WHERE id = $8
 	`
 
-	_, err := r.db.Exec(query, user.Status, user.UpdatedAt, user.ID)
+	_, err := r.db.Exec(
+		query,
+		user.FirstName,
+		user.LastName,
+		user.Phone,
+		user.AvatarURL,
+		user.PasswordHash,
+		user.Status,
+		user.UpdatedAt,
+		user.ID,
+	)
+
 	if err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 
 	return nil
 }
+
 
 func (r *userRepository) FindPendingBySchool(schoolID int) ([]*domain.User, error) {
 	query := `

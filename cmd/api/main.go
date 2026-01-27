@@ -9,25 +9,25 @@ import (
 	"educnet/internal/db"
 	"educnet/internal/repository"
 	"educnet/internal/routes"
+	"educnet/internal/middleware"
 )
 
 func main() {
-	// 1. Load configuration
+	//! 1. Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal("Failed to load config:", err)
 	}
 
-	// 2. Connect to database
+	//! 2. Connect to database
 	database, err := db.Connect(cfg.DSN())
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer db.Close(database)
-
 	log.Println("✅ Database connected successfully")
 
-	// 3. Initialize JWT service
+	//! 3. Initialize JWT service
 	jwtService := auth.NewJWTService(
 		cfg.JWT.Secret,
 		cfg.JWT.AccessTokenTTL,
@@ -35,7 +35,7 @@ func main() {
 	)
 	log.Printf("🔑 JWT configured (TTL: %dh)", cfg.JWT.AccessTokenTTL)
 
-	// 4. Initialize repositories
+	//! 4. Initialize repositories
 	schoolRepo := repository.NewSchoolRepository(database)
 	userRepo := repository.NewUserRepository(database)
 	subjectRepo := repository.NewSubjectRepository(database)
@@ -43,11 +43,11 @@ func main() {
 	teacherSubjectRepo := repository.NewTeacherSubjectRepository(database)
 	studentClassRepo := repository.NewStudentClassRepository(database)
 
-	// 5. Setup router (all routes configured in routes package)
-	router := routes.SetupRouter(
+	//! 5. Setup router (all routes configured in routes package)
+	router := routes.NewRouter(
 		database,
 		jwtService,
-		cfg.JWT.Secret, // ✅ AJOUTÉ
+		cfg.JWT.Secret,
 		schoolRepo,
 		userRepo,
 		subjectRepo,
@@ -56,12 +56,14 @@ func main() {
 		studentClassRepo,
 	)
 
-	// 6. Start server
+	handler := middleware.CORS(router)
+
+	//! 6. Start server
 	addr := ":" + cfg.Server.Port
 	log.Printf("🚀 Server starting on http://localhost%s (env: %s)", addr, cfg.Server.Env)
 	log.Printf("📍 Health: http://localhost%s/api/health", addr)
 
-	if err := http.ListenAndServe(addr, router); err != nil {
-		log.Fatal("❌ Failed to start server:", err)
+	if err := http.ListenAndServe(addr, handler); err != nil {
+		log.Fatal("Failed to start server:", err)
 	}
 }

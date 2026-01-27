@@ -278,3 +278,21 @@ func (h *AdminHandler) DeleteClass(w http.ResponseWriter, r *http.Request) {
 
 	utils.OK(w, "Class deleted successfully", nil)
 }
+
+
+//! GET /api/admin/dashboard
+func (h *AdminHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	dashboard, err := h.adminUC.GetDashboard(claims.UserID)
+	if err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.OK(w, "Dashboard retrieved", dashboard)
+}
