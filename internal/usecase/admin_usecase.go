@@ -15,6 +15,7 @@ type AdminUseCase interface {
 	RejectUser(adminUserID, targetUserID int, reason string) error
 	GetAllUsers(adminUserID int, filters map[string]string) (*dto.UserListResponse, error)
 
+	GetAllSubjects(schoolID int) ([]dto.SubjectResponse, error)
 	CreateSubject(adminUserID int, req *dto.CreateSubjectRequest) (*dto.SubjectResponse, error)
 	UpdateSubject(adminUserID, subjectID int, req *dto.UpdateSubjectRequest) (*dto.SubjectResponse, error)
 	DeleteSubject(adminUserID, subjectID int) error
@@ -350,6 +351,15 @@ func (uc *adminUseCase) DeleteSubject(adminUserID, subjectID int) error {
 
 	//! 4. Delete subject
 	return uc.subjectRepo.Delete(subjectID)
+}
+
+func (uc *adminUseCase) GetAllSubjects(schoolID int) ([]dto.SubjectResponse, error) {
+	subjects, err := uc.subjectRepo.FindBySchoolID(schoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	return dto.SubjectResponsesFromDomain(subjects), nil
 }
 
 //! ========== CLASSES ==========

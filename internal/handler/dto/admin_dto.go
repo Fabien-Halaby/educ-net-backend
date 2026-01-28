@@ -65,8 +65,21 @@ type SubjectResponse struct {
 	SchoolID    int    `json:"school_id"`
 }
 
-//! ========== CLASSES ==========
+func SubjectResponsesFromDomain(subjects []*domain.Subject) []SubjectResponse {
+	responses := make([]SubjectResponse, len(subjects))
+	for i, subject := range subjects {
+		responses[i] = SubjectResponse{
+			ID:           subject.ID,
+			Name:         subject.Name,
+			Code:         subject.Code,
+			Description:  subject.Description,
+			SchoolID:	  subject.SchoolID,
+		}
+	}
+	return responses
+}
 
+// ! ========== CLASSES ==========
 type CreateClassRequest struct {
 	Name         string `json:"name"`
 	Level        string `json:"level"`

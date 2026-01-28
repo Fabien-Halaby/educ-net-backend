@@ -23,11 +23,12 @@ func SetupAdminRoutes(api *mux.Router, h *Handlers, jwtService *auth.JWTService)
 	// admin.HandleFunc("/users/{id}/suspend", h.Admin.SuspendUser).Methods("POST")  // À venir
 
 	// ========== SUBJECT MANAGEMENT (CRUD) - À IMPLÉMENTER ==========
+	admin.HandleFunc("/subjects", h.Admin.GetAllSubjects).Methods("GET")
 	admin.HandleFunc("/subjects", h.Admin.CreateSubject).Methods("POST")
 	admin.HandleFunc("/subjects/{id}", h.Admin.UpdateSubject).Methods("PUT")
 	admin.HandleFunc("/subjects/{id}", h.Admin.DeleteSubject).Methods("DELETE")
 
-	// ========== CLASS MANAGEMENT (CRUD) - À IMPLÉMENTER ==========
+	// ========== CLASS MANAGEMENT (CRUD) ==========
 	admin.HandleFunc("/classes", h.Admin.GetAllClasses).Methods("GET")
 	admin.HandleFunc("/classes", h.Admin.CreateClass).Methods("POST")
 	admin.HandleFunc("/classes/{id}", h.Admin.UpdateClass).Methods("PUT")

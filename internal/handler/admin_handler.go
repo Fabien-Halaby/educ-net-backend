@@ -200,6 +200,23 @@ func (h *AdminHandler) DeleteSubject(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Subject deleted successfully", nil)
 }
 
+func (h *AdminHandler) GetAllSubjects(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	subjects, err := h.adminUC.GetAllSubjects(claims.SchoolID)
+	if err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.OK(w, "Subjects retrieved", subjects)
+}
+
+
 // ========== CLASSES ==========
 func (h *AdminHandler) GetAllClasses(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetUserFromContext(r.Context())
