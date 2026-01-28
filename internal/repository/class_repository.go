@@ -13,8 +13,9 @@ type ClassRepository interface {
 	FindBySchoolID(schoolID int) ([]*domain.Class, error)
 	FindBySchoolAndYear(schoolID int, academicYear string) ([]*domain.Class, error)
 
+	GetAll(schoolID int) ([]*domain.Class, error)
 	Update(class *domain.Class) error
-	Delete(id int) error        
+	Delete(id int) error
 	ExistsByName(schoolID int, name string, excludeID int) (bool, error)
 }
 
@@ -130,6 +131,50 @@ func (r *classRepository) FindBySchoolID(schoolID int) ([]*domain.Class, error) 
 	return classes, nil
 }
 
+func (r *classRepository) GetAll(schoolID int) ([]*domain.Class, error) {
+	query := `
+		SELECT id, school_id, name, level, section, capacity, academic_year, created_at, updated_at
+		FROM classes
+		WHERE school_id = $1
+		ORDER BY level, name
+	`
+
+	rows, err := r.db.Query(query, schoolID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find classes: %w", err)
+	}
+	defer rows.Close()
+
+	classes := []*domain.Class{}
+	for rows.Next() {
+		class := &domain.Class{}
+		var section sql.NullString
+
+		err := rows.Scan(
+			&class.ID,
+			&class.SchoolID,
+			&class.Name,
+			&class.Level,
+			&section,
+			&class.Capacity,
+			&class.AcademicYear,
+			&class.CreatedAt,
+			&class.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan class: %w", err)
+		}
+
+		if section.Valid {
+			class.Section = section.String
+		}
+
+		classes = append(classes, class)
+	}
+
+	return classes, nil
+}
+
 func (r *classRepository) FindBySchoolAndYear(schoolID int, academicYear string) ([]*domain.Class, error) {
 	query := `
 		SELECT id, school_id, name, level, section, capacity, academic_year, created_at, updated_at
@@ -174,7 +219,7 @@ func (r *classRepository) FindBySchoolAndYear(schoolID int, academicYear string)
 	return classes, nil
 }
 
-//! Update met à jour les informations d'une classe existante.
+// ! Update met à jour les informations d'une classe existante.
 func (r *classRepository) Update(class *domain.Class) error {
 	query := `
 		UPDATE classes
@@ -201,7 +246,7 @@ func (r *classRepository) Update(class *domain.Class) error {
 	return nil
 }
 
-//! Delete supprime une classe par son ID.
+// ! Delete supprime une classe par son ID.
 func (r *classRepository) Delete(id int) error {
 	query := `DELETE FROM classes WHERE id = $1`
 

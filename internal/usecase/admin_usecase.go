@@ -1,9 +1,9 @@
 package usecase
 
 import (
+	"educnet/internal/domain"
 	"educnet/internal/handler/dto"
 	"educnet/internal/repository"
-	"educnet/internal/domain"
 
 	"errors"
 	"fmt"
@@ -18,7 +18,8 @@ type AdminUseCase interface {
 	CreateSubject(adminUserID int, req *dto.CreateSubjectRequest) (*dto.SubjectResponse, error)
 	UpdateSubject(adminUserID, subjectID int, req *dto.UpdateSubjectRequest) (*dto.SubjectResponse, error)
 	DeleteSubject(adminUserID, subjectID int) error
-	
+
+	GetAll(schoolID int) ([]dto.ClassResponse, error)
 	CreateClass(adminUserID int, req *dto.CreateClassRequest) (*dto.ClassResponse, error)
 	UpdateClass(adminUserID, classID int, req *dto.UpdateClassRequest) (*dto.ClassResponse, error)
 	DeleteClass(adminUserID, classID int) error
@@ -215,8 +216,7 @@ func (uc *adminUseCase) GetAllUsers(adminUserID int, filters map[string]string) 
 	}, nil
 }
 
-
-//! ========== SUBJECTS ==========
+// ! ========== SUBJECTS ==========
 func (uc *adminUseCase) CreateSubject(adminUserID int, req *dto.CreateSubjectRequest) (*dto.SubjectResponse, error) {
 	//! 1. Verify admin
 	admin, err := uc.userRepo.FindByID(adminUserID)
@@ -353,6 +353,15 @@ func (uc *adminUseCase) DeleteSubject(adminUserID, subjectID int) error {
 }
 
 //! ========== CLASSES ==========
+
+func (uc *adminUseCase) GetAll(schoolID int) ([]dto.ClassResponse, error) {
+	classes, err := uc.classRepo.GetAll(schoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	return dto.ClassResponsesFromDomain(classes), nil
+}
 
 func (uc *adminUseCase) CreateClass(adminUserID int, req *dto.CreateClassRequest) (*dto.ClassResponse, error) {
 	//! 1. Verify admin

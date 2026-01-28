@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"educnet/internal/handler/dto"
 	"educnet/internal/middleware"
 	"educnet/internal/usecase"
 	"educnet/internal/utils"
-	"educnet/internal/handler/dto"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -20,7 +20,7 @@ func NewAdminHandler(adminUC usecase.AdminUseCase) *AdminHandler {
 	return &AdminHandler{adminUC: adminUC}
 }
 
-//! GET /api/admin/users/pending
+// ! GET /api/admin/users/pending
 func (h *AdminHandler) GetPendingUsers(w http.ResponseWriter, r *http.Request) {
 	//! Get admin from context
 	claims, ok := middleware.GetUserFromContext(r.Context())
@@ -39,7 +39,7 @@ func (h *AdminHandler) GetPendingUsers(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Pending users retrieved", resp)
 }
 
-//! POST /api/admin/users/{id}/approve
+// ! POST /api/admin/users/{id}/approve
 func (h *AdminHandler) ApproveUser(w http.ResponseWriter, r *http.Request) {
 	//! Get admin from context
 	claims, ok := middleware.GetUserFromContext(r.Context())
@@ -65,7 +65,7 @@ func (h *AdminHandler) ApproveUser(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "User approved successfully", nil)
 }
 
-//! POST /api/admin/users/{id}/reject
+// ! POST /api/admin/users/{id}/reject
 func (h *AdminHandler) RejectUser(w http.ResponseWriter, r *http.Request) {
 	//! Get admin from context
 	claims, ok := middleware.GetUserFromContext(r.Context())
@@ -97,7 +97,7 @@ func (h *AdminHandler) RejectUser(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "User rejected successfully", nil)
 }
 
-//! GET /api/admin/users
+// ! GET /api/admin/users
 func (h *AdminHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	//! Get admin from context
 	claims, ok := middleware.GetUserFromContext(r.Context())
@@ -121,7 +121,6 @@ func (h *AdminHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	utils.OK(w, "Users retrieved", resp)
 }
-
 
 // ========== SUBJECTS ==========
 
@@ -202,6 +201,21 @@ func (h *AdminHandler) DeleteSubject(w http.ResponseWriter, r *http.Request) {
 }
 
 // ========== CLASSES ==========
+func (h *AdminHandler) GetAllClasses(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	classes, err := h.adminUC.GetAll(claims.SchoolID)
+	if err != nil {
+		utils.BadRequest(w, err.Error())
+		return
+	}
+
+	utils.OK(w, "Classes retrieved", classes)
+}
 
 // POST /api/admin/classes
 func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
@@ -279,8 +293,7 @@ func (h *AdminHandler) DeleteClass(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Class deleted successfully", nil)
 }
 
-
-//! GET /api/admin/dashboard
+// ! GET /api/admin/dashboard
 func (h *AdminHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetUserFromContext(r.Context())
 	if !ok {

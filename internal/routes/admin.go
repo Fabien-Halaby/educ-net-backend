@@ -28,11 +28,12 @@ func SetupAdminRoutes(api *mux.Router, h *Handlers, jwtService *auth.JWTService)
 	admin.HandleFunc("/subjects/{id}", h.Admin.DeleteSubject).Methods("DELETE")
 
 	// ========== CLASS MANAGEMENT (CRUD) - À IMPLÉMENTER ==========
+	admin.HandleFunc("/classes", h.Admin.GetAllClasses).Methods("GET")
 	admin.HandleFunc("/classes", h.Admin.CreateClass).Methods("POST")
 	admin.HandleFunc("/classes/{id}", h.Admin.UpdateClass).Methods("PUT")
 	admin.HandleFunc("/classes/{id}", h.Admin.DeleteClass).Methods("DELETE")
 
 	// ========== DASHBOARD & STATS ==========
-	admin.HandleFunc("/dashboard", h.Admin.GetDashboard).Methods("GET")          // À venir
+	admin.HandleFunc("/dashboard", h.Admin.GetDashboard).Methods("GET") // À venir
 	// admin.HandleFunc("/stats", h.Admin.GetStats).Methods("GET")                   // À venir
 }

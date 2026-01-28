@@ -7,9 +7,9 @@ import (
 	"educnet/internal/auth"
 	"educnet/internal/config"
 	"educnet/internal/db"
+	"educnet/internal/middleware"
 	"educnet/internal/repository"
 	"educnet/internal/routes"
-	"educnet/internal/middleware"
 )
 
 func main() {
