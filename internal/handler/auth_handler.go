@@ -16,7 +16,7 @@ func NewAuthHandler(authUC usecase.AuthUseCase) *AuthHandler {
 	return &AuthHandler{authUC: authUC}
 }
 
-//! POST /api/auth/login
+// ! POST /api/auth/login
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//! SetupPublicRoutes configure les routes publiques (sans authentification)
+// ! SetupPublicRoutes configure les routes publiques (sans authentification)
 func SetupPublicRoutes(api *mux.Router, h *Handlers) {
 	//! Health check
 	api.HandleFunc("/health", health).Methods("GET")
@@ -23,7 +23,7 @@ func SetupPublicRoutes(api *mux.Router, h *Handlers) {
 	// api.HandleFunc("/auth/logout", h.Auth.Logout).Methods("POST")         // À venir
 }
 
-//! health handler
+// ! health handler
 func health(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Server is running", map[string]string{
 		"status":  "healthy",

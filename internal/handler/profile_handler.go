@@ -33,7 +33,7 @@ func (h *ProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.profileUC.GetProfile(claims.UserID)
 	if err != nil {
-		utils.NotFound(w, err.Error())
+		utils.HandleUseCaseError(w, err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (h *ProfileHandler) ChangePassword(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := h.profileUC.ChangePassword(claims.UserID, &req); err != nil {
-		utils.BadRequest(w, err.Error())
+		utils.HandleUseCaseError(w, err)
 		return
 	}
 
