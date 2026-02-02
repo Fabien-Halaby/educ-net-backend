@@ -116,6 +116,23 @@ func SeedTestClass(t *testing.T, db *sql.DB, schoolID int, name, level, section,
 	return id
 }
 
+func SeedTestSubject(t *testing.T, db *sql.DB, schoolID int, name, code, description string) int {
+	t.Helper()
+
+	var id int
+	query := `
+        INSERT INTO subjects (school_id, name, code, description)
+        VALUES ($1, $2, $3, $4) RETURNING id
+    `
+
+	err := db.QueryRow(query, schoolID, name, code, description).Scan(&id)
+	if err != nil {
+		t.Fatalf("Failed to seed test subject: %v", err)
+	}
+
+	return id
+}
+
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
