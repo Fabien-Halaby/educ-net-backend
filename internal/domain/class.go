@@ -1,13 +1,13 @@
 package domain
 
 import (
-	"errors"
 	"time"
 )
 
-var (
-	ErrClassNotFound = errors.New("class not found")
-	ErrInvalidClass  = errors.New("invalid class data")
+const (
+	ClassStatusActive   = "active"
+	ClassStatusInactive = "inactive"
+	ClassStatusArchived = "archived"
 )
 
 type Class struct {
@@ -18,31 +18,48 @@ type Class struct {
 	Section      string    `json:"section"`
 	Capacity     int       `json:"capacity"`
 	AcademicYear string    `json:"academic_year"`
+	Status       string    `json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-func NewClass(schoolID int, name, level, academicYear string) (*Class, error) {
+func NewClass(schoolID int, name, level, section, academicYear string) (*Class, error) {
 	if schoolID <= 0 {
-		return nil, ErrInvalidClass
+		return nil, ErrClassInvalidID
 	}
 	if name == "" {
-		return nil, errors.New("class name is required")
+		return nil, ErrClassNameRequired
 	}
 	if level == "" {
-		return nil, errors.New("class level is required")
+		return nil, ErrClassLevelRequired
 	}
 	if academicYear == "" {
-		return nil, errors.New("academic year is required")
+		return nil, ErrClassYearRequired
 	}
 
 	return &Class{
 		SchoolID:     schoolID,
 		Name:         name,
 		Level:        level,
+		Section:      section,
 		AcademicYear: academicYear,
-		Capacity:     40, // Default
+		Capacity:     40,
+		Status:       ClassStatusActive,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}, nil
+}
+
+func (c *Class) Activate() {
+	c.Status = ClassStatusActive
+	c.UpdatedAt = time.Now()
+}
+
+func (c *Class) Archive() {
+	c.Status = ClassStatusArchived
+	c.UpdatedAt = time.Now()
+}
+
+func (c *Class) IsActive() bool {
+	return c.Status == ClassStatusActive
 }

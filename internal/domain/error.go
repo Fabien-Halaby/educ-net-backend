@@ -39,3 +39,12 @@ var (
 	ErrNotFound           = NewError("NOT_FOUND", "Resource not found")
 	ErrInvalidPhoneFormat = NewError("INVALID_PHONE_FORMAT", "Phone number format is invalid")
 )
+
+// ! CLASS ERRORS (dans error.go → à ajouter)
+var (
+	ErrClassNameRequired  = NewError("CLASS_NAME_REQUIRED", "Class name is required")
+	ErrClassLevelRequired = NewError("CLASS_LEVEL_REQUIRED", "Class level is required")
+	ErrClassYearRequired  = NewError("CLASS_YEAR_REQUIRED", "Academic year is required")
+	ErrClassInvalidID     = NewError("CLASS_INVALID_ID", "Invalid school ID")
+	ErrClassNotFound      = NewError("CLASS_NOT_FOUND", "Class not found")
+)

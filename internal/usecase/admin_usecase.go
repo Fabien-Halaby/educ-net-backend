@@ -399,7 +399,7 @@ func (uc *adminUseCase) CreateClass(adminUserID int, req *dto.CreateClassRequest
 	}
 
 	//! 3. Create class
-	class, err := domain.NewClass(admin.SchoolID, req.Name, req.Level, req.AcademicYear)
+	class, err := domain.NewClass(admin.SchoolID, req.Name, req.Level, req.Section, req.AcademicYear)
 	if err != nil {
 		return nil, err
 	}
