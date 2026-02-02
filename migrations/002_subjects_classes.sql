@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS classes (
     level VARCHAR(50) NOT NULL, --! Ex: 6ème, Terminale
     section VARCHAR(50), --! Ex: A, S, L
     capacity INTEGER DEFAULT 40,
-    academic_year VARCHAR(20) NOT NULL, -- Ex: 2025-2026
+    academic_year VARCHAR(20) NOT NULL,
+    status VARCHAR(20) DEFAULT 'active', 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(school_id, name, academic_year)
