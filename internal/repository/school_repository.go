@@ -36,11 +36,14 @@ func (r *schoolRepository) scanSchoolRow(row domainScanner, school *domain.Schoo
 		&adminUserID, &school.Status,
 		&school.CreatedAt, &school.UpdatedAt,
 	)
+
+	if err == sql.ErrNoRows {
+		return err
+	}
 	if err != nil {
-		return scanError(err, "scan school row")
+		return fmt.Errorf("scan school row: %w", err)
 	}
 
-	//! NULL handling
 	school.Address = nullString(address)
 	school.Phone = nullString(phone)
 	school.Email = nullString(email)

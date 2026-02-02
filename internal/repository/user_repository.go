@@ -33,8 +33,11 @@ func (r *userRepository) scanUserRow(row domainScanner, user *domain.User) error
 		&user.FirstName, &user.LastName, &phone, &user.Role,
 		&avatarURL, &user.Status, &user.CreatedAt, &user.UpdatedAt,
 	)
+	if err == sql.ErrNoRows {
+		return err // ← Passer directement
+	}
 	if err != nil {
-		return scanError(err, "scan user row")
+		return fmt.Errorf("scan user row: %w", err)
 	}
 
 	user.Phone = nullString(phone)
