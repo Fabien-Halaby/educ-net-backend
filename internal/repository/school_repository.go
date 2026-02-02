@@ -6,10 +6,6 @@ import (
 	"fmt"
 )
 
-type domainScanner interface {
-	Scan(dest ...any) error
-}
-
 // ! SchoolRepository interface (PARFAIT)
 type SchoolRepository interface {
 	Create(school *domain.School) error
@@ -41,7 +37,7 @@ func (r *schoolRepository) scanSchoolRow(row domainScanner, school *domain.Schoo
 		&school.CreatedAt, &school.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("scan school row: %w", err)
+		return scanError(err, "scan school row")
 	}
 
 	//! NULL handling
@@ -51,21 +47,6 @@ func (r *schoolRepository) scanSchoolRow(row domainScanner, school *domain.Schoo
 	school.LogoURL = nullString(logoURL)
 	school.AdminUserID = nullInt(adminUserID)
 
-	return nil
-}
-
-func nullString(ns sql.NullString) string {
-	if ns.Valid {
-		return ns.String
-	}
-	return ""
-}
-
-func nullInt(ni sql.NullInt64) *int {
-	if ni.Valid {
-		v := int(ni.Int64)
-		return &v
-	}
 	return nil
 }
 

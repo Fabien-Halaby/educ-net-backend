@@ -56,3 +56,8 @@ var (
 	ErrSubjectInvalidID    = NewError("SUBJECT_INVALID_ID", "Invalid school ID")
 	ErrSubjectNotFound     = NewError("SUBJECT_NOT_FOUND", "Subject not found")
 )
+
+// ! USER ERRORS
+var (
+	ErrUserNotFound = NewError("USER_NOT_FOUND", "User not found")
+)
