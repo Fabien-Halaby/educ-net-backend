@@ -66,3 +66,8 @@ var (
 var (
 	ErrStudentClassNotFound = NewError("STUDENT_CLASS_NOT_FOUND", "Student-Class association not found")
 )
+
+// ! TEACHER-SUBJECT ERRORS
+var (
+	ErrTeacherSubjectNotFound = NewError("TEACHER_SUBJECT_NOT_FOUND", "Teacher-Subject association not found")
+)

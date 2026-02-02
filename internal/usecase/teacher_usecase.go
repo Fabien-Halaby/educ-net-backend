@@ -13,10 +13,10 @@ type TeacherUseCase interface {
 }
 
 type teacherUseCase struct {
-	db                *sql.DB
-	userRepo          repository.UserRepository
-	schoolRepo        repository.SchoolRepository
-	subjectRepo       repository.SubjectRepository
+	db                 *sql.DB
+	userRepo           repository.UserRepository
+	schoolRepo         repository.SchoolRepository
+	subjectRepo        repository.SubjectRepository
 	teacherSubjectRepo repository.TeacherSubjectRepository
 }
 
@@ -99,8 +99,11 @@ func (uc *teacherUseCase) RegisterTeacher(req *dto.TeacherRegistrationRequest) (
 	}
 
 	//! 6. Assign subjects
-	if err := uc.teacherSubjectRepo.AssignSubjects(user.ID, req.SubjectIDs); err != nil {
-		return nil, fmt.Errorf("failed to assign subjects: %w", err)
+	teacherSubjectRepo := repository.NewTeacherSubjectRepository(uc.db)
+	for _, subjectID := range req.SubjectIDs {
+		if err := teacherSubjectRepo.Create(user.ID, subjectID); err != nil {
+			return nil, fmt.Errorf("failed to assign subject %d: %w", subjectID, err)
+		}
 	}
 
 	//! 7. Commit transaction

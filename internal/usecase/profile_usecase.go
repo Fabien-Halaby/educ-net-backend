@@ -187,20 +187,20 @@ func (uc *profileUseCase) GetTeacherSubjects(userID int) (*dto.TeacherSubjectsRe
 	}
 
 	// 2. Get teacher's subject IDs
-	subjectIDs, err := uc.teacherSubjectRepo.GetTeacherSubjects(userID)
+	subjects, err := uc.teacherSubjectRepo.FindByTeacher(userID)
 	if err != nil {
 		return nil, err
 	}
 
 	// 3. Get subject details
-	subjects := []dto.SubjectInfo{}
-	for _, subjectID := range subjectIDs {
-		subject, err := uc.subjectRepo.FindByID(subjectID)
+	subjectsInfo := []dto.SubjectInfo{}
+	for _, subject := range subjects {
+		subject, err := uc.subjectRepo.FindByID(subject.ID)
 		if err != nil {
-			continue // Skip if not found
+			continue
 		}
 
-		subjects = append(subjects, dto.SubjectInfo{
+		subjectsInfo = append(subjectsInfo, dto.SubjectInfo{
 			ID:          subject.ID,
 			Name:        subject.Name,
 			Code:        subject.Code,
@@ -209,8 +209,8 @@ func (uc *profileUseCase) GetTeacherSubjects(userID int) (*dto.TeacherSubjectsRe
 	}
 
 	return &dto.TeacherSubjectsResponse{
-		Subjects: subjects,
-		Total:    len(subjects),
+		Subjects: subjectsInfo,
+		Total:    len(subjectsInfo),
 	}, nil
 }
 

@@ -84,15 +84,14 @@ func (uc *adminUseCase) GetPendingUsers(adminUserID int) (*dto.PendingUsersRespo
 
 		//! Add subjects for teachers
 		if user.IsTeacher() {
-			subjectIDs, _ := uc.teacherSubjectRepo.GetTeacherSubjects(user.ID)
-			subjects := []string{}
-			for _, subjectID := range subjectIDs {
-				subject, err := uc.subjectRepo.FindByID(subjectID)
-				if err == nil {
-					subjects = append(subjects, subject.Name)
-				}
+			subjects, err := uc.teacherSubjectRepo.FindByTeacher(user.ID)
+			if err != nil {
+				continue
 			}
-			userInfo.Subjects = subjects
+			subjectIDs := make([]int, len(subjects))
+			for i, subject := range subjects {
+				subjectIDs[i] = subject.ID
+			}
 		}
 
 		//! Add class for students

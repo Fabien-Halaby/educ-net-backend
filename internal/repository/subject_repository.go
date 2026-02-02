@@ -15,6 +15,9 @@ type SubjectRepository interface {
 	Update(subject *domain.Subject) error
 	Delete(id int) error
 	ExistsByCode(schoolID int, code string, excludeID int) (bool, error)
+
+	//! HELPER
+	ScanSubjectRow(row domainScanner, subjectObj *domain.Subject) error
 }
 
 type subjectRepository struct {
@@ -26,7 +29,7 @@ func NewSubjectRepository(db *sql.DB) SubjectRepository {
 }
 
 // ! ==================== PRO SCANNER ====================
-func (r *subjectRepository) scanSubjectRow(row domainScanner, subjectObj *domain.Subject) error {
+func (r *subjectRepository) ScanSubjectRow(row domainScanner, subjectObj *domain.Subject) error {
 	var description sql.NullString
 	err := row.Scan(
 		&subjectObj.ID,
@@ -98,7 +101,7 @@ func (r *subjectRepository) FindBySchoolID(schoolID int) ([]*domain.Subject, err
 	var subjects []*domain.Subject
 	for rows.Next() {
 		subjectObj := &domain.Subject{}
-		if err := r.scanSubjectRow(rows, subjectObj); err != nil {
+		if err := r.ScanSubjectRow(rows, subjectObj); err != nil {
 			return nil, err
 		}
 		subjects = append(subjects, subjectObj)
