@@ -226,7 +226,7 @@ func (uc *profileUseCase) GetStudentClass(userID int) (*dto.StudentClassResponse
 	}
 
 	// 2. Get student's class
-	classInfo, err := uc.studentClassRepo.GetStudentClass(userID)
+	classInfo, err := uc.studentClassRepo.FindByClass(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func (uc *profileUseCase) GetStudentClass(userID int) (*dto.StudentClassResponse
 	}
 
 	// 3. Get class details
-	class, err := uc.classRepo.FindByID(classInfo.ClassID)
+	class, err := uc.classRepo.FindByID(classInfo[0].ID)
 	if err != nil {
 		return nil, err
 	}

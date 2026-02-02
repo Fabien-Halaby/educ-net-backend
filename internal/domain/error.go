@@ -61,3 +61,8 @@ var (
 var (
 	ErrUserNotFound = NewError("USER_NOT_FOUND", "User not found")
 )
+
+// ! STUDENT-CLASS ERRORS
+var (
+	ErrStudentClassNotFound = NewError("STUDENT_CLASS_NOT_FOUND", "Student-Class association not found")
+)

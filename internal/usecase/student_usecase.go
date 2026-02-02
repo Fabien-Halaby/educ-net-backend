@@ -90,7 +90,7 @@ func (uc *studentUseCase) RegisterStudent(req *dto.StudentRegistrationRequest) (
 	}
 
 	//! 6. Enroll in class
-	if err := uc.studentClassRepo.EnrollStudent(user.ID, class.ID); err != nil {
+	if err := uc.studentClassRepo.Create(user.ID, class.ID); err != nil {
 		return nil, fmt.Errorf("failed to enroll student: %w", err)
 	}
 

@@ -15,6 +15,9 @@ type UserRepository interface {
 	UpdateAvatar(userID int, avatarURL string) error
 	FindPendingBySchool(schoolID int) ([]*domain.User, error)
 	FindBySchool(schoolID int, filters map[string]string) ([]*domain.User, error)
+
+	//! HELPER
+	ScanUserRow(row domainScanner, user *domain.User) error
 }
 
 type userRepository struct {
@@ -26,7 +29,7 @@ func NewUserRepository(db *sql.DB) UserRepository {
 }
 
 // ! ==================== PRO HELPERS ====================
-func (r *userRepository) scanUserRow(row domainScanner, user *domain.User) error {
+func (r *userRepository) ScanUserRow(row domainScanner, user *domain.User) error {
 	var phone, avatarURL sql.NullString
 	err := row.Scan(
 		&user.ID, &user.SchoolID, &user.Email, &user.PasswordHash,
@@ -65,7 +68,7 @@ func (r *userRepository) FindByID(id int) (*domain.User, error) {
 		`SELECT id,school_id,email,password_hash,first_name,last_name,phone,role,avatar_url,status,created_at,updated_at 
          FROM users WHERE id=$1`, id)
 
-	if err := r.scanUserRow(row, user); err != nil {
+	if err := r.ScanUserRow(row, user); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, domain.ErrUserNotFound
 		}
@@ -80,7 +83,7 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 		`SELECT id,school_id,email,password_hash,first_name,last_name,phone,role,avatar_url,status,created_at,updated_at 
          FROM users WHERE email=$1`, email)
 
-	if err := r.scanUserRow(row, user); err != nil {
+	if err := r.ScanUserRow(row, user); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, domain.ErrUserNotFound
 		}
@@ -135,7 +138,7 @@ func (r *userRepository) FindPendingBySchool(schoolID int) ([]*domain.User, erro
 	var users []*domain.User
 	for rows.Next() {
 		user := &domain.User{}
-		if err := r.scanUserRow(rows, user); err != nil {
+		if err := r.ScanUserRow(rows, user); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -167,7 +170,7 @@ func (r *userRepository) FindBySchool(schoolID int, filters map[string]string) (
 	var users []*domain.User
 	for rows.Next() {
 		user := &domain.User{}
-		if err := r.scanUserRow(rows, user); err != nil {
+		if err := r.ScanUserRow(rows, user); err != nil {
 			return nil, err
 		}
 		users = append(users, user)

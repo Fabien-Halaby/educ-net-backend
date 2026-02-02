@@ -16,6 +16,9 @@ type ClassRepository interface {
 	Update(class *domain.Class) error
 	Delete(id int) error
 	ExistsByName(schoolID int, name string, excludeID int) (bool, error)
+
+	//! HELPER
+	ScanClassRow(row domainScanner, classObj *domain.Class) error
 }
 
 type classRepository struct {
@@ -27,7 +30,7 @@ func NewClassRepository(db *sql.DB) ClassRepository {
 }
 
 // ! ==================== PRO SCANNER ====================
-func (r *classRepository) scanClassRow(row domainScanner, classObj *domain.Class) error {
+func (r *classRepository) ScanClassRow(row domainScanner, classObj *domain.Class) error {
 	var section sql.NullString
 	err := row.Scan(
 		&classObj.ID, &classObj.SchoolID, &classObj.Name, &classObj.Level,
@@ -99,7 +102,7 @@ func (r *classRepository) FindBySchoolID(schoolID int) ([]*domain.Class, error) 
 	var classes []*domain.Class
 	for rows.Next() {
 		classObj := &domain.Class{}
-		if err := r.scanClassRow(rows, classObj); err != nil {
+		if err := r.ScanClassRow(rows, classObj); err != nil {
 			return nil, err
 		}
 		classes = append(classes, classObj)
@@ -124,7 +127,7 @@ func (r *classRepository) FindBySchoolAndYear(schoolID int, academicYear string)
 	var classes []*domain.Class
 	for rows.Next() {
 		classObj := &domain.Class{}
-		if err := r.scanClassRow(rows, classObj); err != nil {
+		if err := r.ScanClassRow(rows, classObj); err != nil {
 			return nil, err
 		}
 		classes = append(classes, classObj)

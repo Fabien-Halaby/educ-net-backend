@@ -97,9 +97,9 @@ func (uc *adminUseCase) GetPendingUsers(adminUserID int) (*dto.PendingUsersRespo
 
 		//! Add class for students
 		if user.IsStudent() {
-			classInfo, _ := uc.studentClassRepo.GetStudentClass(user.ID)
+			classInfo, _ := uc.studentClassRepo.FindByStudent(user.ID)
 			if classInfo != nil {
-				userInfo.ClassName = classInfo.ClassName
+				userInfo.ClassName = classInfo[0].Name
 			}
 		}
 

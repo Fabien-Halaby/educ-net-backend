@@ -133,6 +133,14 @@ func SeedTestSubject(t *testing.T, db *sql.DB, schoolID int, name, code, descrip
 	return id
 }
 
+func SeedTestStudentClass(t *testing.T, db *sql.DB, studentID, classID int) {
+	_, err := db.Exec("INSERT INTO student_classes (student_id, class_id) VALUES ($1, $2)",
+		studentID, classID)
+	if err != nil {
+		t.Fatalf("SeedTestStudentClass error: %v", err)
+	}
+}
+
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
