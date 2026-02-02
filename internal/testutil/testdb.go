@@ -10,7 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-//! SetupTestDB crée une DB de test et retourne la connexion
+// ! SetupTestDB crée une DB de test et retourne la connexion
 func SetupTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 
@@ -42,7 +42,7 @@ func SetupTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
-//! CleanupTestDB nettoie toutes les tables
+// ! CleanupTestDB nettoie toutes les tables
 func CleanupTestDB(t *testing.T, db *sql.DB) {
 	t.Helper()
 
@@ -60,7 +60,7 @@ func CleanupTestDB(t *testing.T, db *sql.DB) {
 	}
 }
 
-//! SeedTestSchool crée une école de test
+// ! SeedTestSchool crée une école de test
 func SeedTestSchool(t *testing.T, db *sql.DB, name, slug, email string) int {
 	t.Helper()
 
@@ -79,7 +79,7 @@ func SeedTestSchool(t *testing.T, db *sql.DB, name, slug, email string) int {
 	return id
 }
 
-//! SeedTestUser crée un utilisateur de test
+// ! SeedTestUser crée un utilisateur de test
 func SeedTestUser(t *testing.T, db *sql.DB, schoolID int, email, role string) int {
 	t.Helper()
 
@@ -93,6 +93,24 @@ func SeedTestUser(t *testing.T, db *sql.DB, schoolID int, email, role string) in
 	err := db.QueryRow(query, schoolID, email, role).Scan(&id)
 	if err != nil {
 		t.Fatalf("Failed to seed test user: %v", err)
+	}
+
+	return id
+}
+
+func SeedTestClass(t *testing.T, db *sql.DB, schoolID int, name, level, section, year string) int {
+	t.Helper()
+
+	var id int
+	query := `
+        INSERT INTO classes (school_id, name, level, section, capacity, academic_year, status)
+        VALUES ($1, $2, $3, $4, 40, $5, 'active')
+        RETURNING id
+    `
+
+	err := db.QueryRow(query, schoolID, name, level, section, year).Scan(&id)
+	if err != nil {
+		t.Fatalf("Failed to seed test class: %v", err)
 	}
 
 	return id
