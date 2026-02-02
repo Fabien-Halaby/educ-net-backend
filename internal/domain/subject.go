@@ -1,13 +1,13 @@
 package domain
 
 import (
-	"errors"
 	"time"
 )
 
-var (
-	ErrSubjectNotFound = errors.New("subject not found")
-	ErrInvalidSubject  = errors.New("invalid subject data")
+const (
+	SubjectStatusActive   = "active"
+	SubjectStatusInactive = "inactive"
+	SubjectStatusArchived = "archived"
 )
 
 type Subject struct {
@@ -16,26 +16,43 @@ type Subject struct {
 	Name        string    `json:"name"`
 	Code        string    `json:"code"`
 	Description string    `json:"description"`
+	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-func NewSubject(schoolID int, name, code string) (*Subject, error) {
+func NewSubject(schoolID int, name, code, description string) (*Subject, error) {
 	if schoolID <= 0 {
-		return nil, ErrInvalidSubject
+		return nil, ErrSubjectInvalidID
 	}
 	if name == "" {
-		return nil, errors.New("subject name is required")
+		return nil, ErrSubjectNameRequired
 	}
 	if code == "" {
-		return nil, errors.New("subject code is required")
+		return nil, ErrSubjectCodeRequired
 	}
 
 	return &Subject{
-		SchoolID:  schoolID,
-		Name:      name,
-		Code:      code,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		SchoolID:    schoolID,
+		Name:        name,
+		Code:        code,
+		Description: description,
+		Status:      SubjectStatusActive,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}, nil
+}
+
+func (s *Subject) Activate() {
+	s.Status = SubjectStatusActive
+	s.UpdatedAt = time.Now()
+}
+
+func (s *Subject) Archive() {
+	s.Status = SubjectStatusArchived
+	s.UpdatedAt = time.Now()
+}
+
+func (s *Subject) IsActive() bool {
+	return s.Status == SubjectStatusActive
 }

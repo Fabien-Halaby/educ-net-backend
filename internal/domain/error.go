@@ -19,7 +19,7 @@ func NewError(code, message string) *DomainError {
 	}
 }
 
-// ! SCHOOL ERRORS (spécifiques école)
+// ! SCHOOL ERRORS
 var (
 	ErrSchoolNameRequired  = NewError("SCHOOL_NAME_REQUIRED", "School name is required")
 	ErrSchoolSlugRequired  = NewError("SCHOOL_SLUG_REQUIRED", "School slug is required")
@@ -27,7 +27,7 @@ var (
 	ErrSchoolAlreadyExists = NewError("SCHOOL_ALREADY_EXISTS", "School with this name already exists")
 )
 
-// ! COMMON ERRORS (génériques - TOUS les usecases)
+// ! COMMON ERRORS
 var (
 	ErrNameRequired       = NewError("NAME_REQUIRED", "Name is required")
 	ErrEmailRequired      = NewError("EMAIL_REQUIRED", "Email is required")
@@ -40,11 +40,19 @@ var (
 	ErrInvalidPhoneFormat = NewError("INVALID_PHONE_FORMAT", "Phone number format is invalid")
 )
 
-// ! CLASS ERRORS (dans error.go → à ajouter)
+// ! CLASS ERRORS
 var (
 	ErrClassNameRequired  = NewError("CLASS_NAME_REQUIRED", "Class name is required")
 	ErrClassLevelRequired = NewError("CLASS_LEVEL_REQUIRED", "Class level is required")
 	ErrClassYearRequired  = NewError("CLASS_YEAR_REQUIRED", "Academic year is required")
 	ErrClassInvalidID     = NewError("CLASS_INVALID_ID", "Invalid school ID")
 	ErrClassNotFound      = NewError("CLASS_NOT_FOUND", "Class not found")
+)
+
+// ! SUBJECT ERRORS
+var (
+	ErrSubjectNameRequired = NewError("SUBJECT_NAME_REQUIRED", "Subject name is required")
+	ErrSubjectCodeRequired = NewError("SUBJECT_CODE_REQUIRED", "Subject code is required")
+	ErrSubjectInvalidID    = NewError("SUBJECT_INVALID_ID", "Invalid school ID")
+	ErrSubjectNotFound     = NewError("SUBJECT_NOT_FOUND", "Subject not found")
 )

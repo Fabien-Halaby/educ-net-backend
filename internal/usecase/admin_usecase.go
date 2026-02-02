@@ -247,7 +247,7 @@ func (uc *adminUseCase) CreateSubject(adminUserID int, req *dto.CreateSubjectReq
 	}
 
 	//! 4. Create subject
-	subject, err := domain.NewSubject(admin.SchoolID, req.Name, req.Code)
+	subject, err := domain.NewSubject(admin.SchoolID, req.Name, req.Code, req.Description)
 	if err != nil {
 		return nil, err
 	}
