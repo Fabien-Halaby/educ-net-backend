@@ -28,7 +28,7 @@ func (uc *authUseCase) Login(req *dto.LoginRequest) (*dto.LoginResponse, error) 
 	//! 1. Find user by email
 	user, err := uc.userRepo.FindByEmail(req.Email)
 	if err != nil {
-		if err == domain.ErrUserNotFound {
+		if err == domain.ErrNotFound {
 			return nil, domain.ErrInvalidCredentials
 		}
 		return nil, err

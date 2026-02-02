@@ -42,8 +42,7 @@ func TestNewSchool(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			school, err := NewSchool(tt.schoolName, tt.slug, tt.email, tt.address, tt.phone)
-
+			school, err := NewSchool(tt.schoolName, tt.slug, tt.address, tt.email, tt.phone)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("NewSchool() expected error but got nil")
@@ -74,7 +73,7 @@ func TestNewSchool(t *testing.T) {
 }
 
 func TestSchool_SetAdmin(t *testing.T) {
-	school, _ := NewSchool("Test School", "test-school", "Address", "test@test.mg",  "123")
+	school, _ := NewSchool("Test School", "test-school", "Address", "test@test.mg", "123")
 
 	adminID := 42
 	school.SetAdmin(adminID)
@@ -96,7 +95,7 @@ func TestSchool_IsActive(t *testing.T) {
 		t.Error("IsActive() = false, want true for new school")
 	}
 
-	school.Status = "inactive"
+	school.Status = SchoolStatusInactive
 	if school.IsActive() {
 		t.Error("IsActive() = true, want false for inactive school")
 	}

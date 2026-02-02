@@ -12,7 +12,7 @@ import (
 	"educnet/internal/utils"
 )
 
-//! CreateSchoolInput DTO d'entrée
+// ! CreateSchoolInput DTO d'entrée
 type CreateSchoolInput struct {
 	SchoolName    string
 	AdminEmail    string
@@ -22,19 +22,19 @@ type CreateSchoolInput struct {
 	Address       string
 }
 
-//! CreateSchoolOutput DTO de sortie
+// ! CreateSchoolOutput DTO de sortie
 type CreateSchoolOutput struct {
 	School *domain.School
 	Admin  *domain.User
 	Token  string
 }
 
-//! SchoolUseCase interface
+// ! SchoolUseCase interface
 type SchoolUseCase interface {
 	CreateSchool(input CreateSchoolInput) (*CreateSchoolOutput, error)
 }
 
-//! schoolUseCase implémentation
+// ! schoolUseCase implémentation
 type schoolUseCase struct {
 	db         *sql.DB
 	schoolRepo repository.SchoolRepository
@@ -42,7 +42,7 @@ type schoolUseCase struct {
 	jwtSecret  string
 }
 
-//! NewSchoolUseCase crée un nouveau use case
+// ! NewSchoolUseCase crée un nouveau use case
 func NewSchoolUseCase(
 	db *sql.DB,
 	schoolRepo repository.SchoolRepository,
@@ -57,7 +57,7 @@ func NewSchoolUseCase(
 	}
 }
 
-//! CreateSchool crée une nouvelle école avec son admin
+// ! CreateSchool crée une nouvelle école avec son admin
 func (uc *schoolUseCase) CreateSchool(input CreateSchoolInput) (*CreateSchoolOutput, error) {
 	//! 1. Validation basique
 	if err := uc.validateInput(input); err != nil {
@@ -82,7 +82,7 @@ func (uc *schoolUseCase) CreateSchool(input CreateSchoolInput) (*CreateSchoolOut
 		return nil, fmt.Errorf("failed to check email: %w", err)
 	}
 	if exists {
-		return nil, domain.ErrUserAlreadyExists
+		return nil, domain.ErrEmailAlreadyExists
 	}
 
 	//! 5. Séparer prénom et nom
@@ -155,24 +155,24 @@ func (uc *schoolUseCase) CreateSchool(input CreateSchoolInput) (*CreateSchoolOut
 	}, nil
 }
 
-//! validateInput valide l'input
+// ! validateInput valide l'input
 func (uc *schoolUseCase) validateInput(input CreateSchoolInput) error {
 	if input.SchoolName == "" {
 		return domain.ErrSchoolNameRequired
 	}
 	if input.AdminEmail == "" {
-		return domain.ErrUserEmailRequired
+		return domain.ErrEmailRequired
 	}
 	if input.AdminPassword == "" || len(input.AdminPassword) < 6 {
-		return domain.ErrUserPasswordTooShort
+		return domain.ErrPasswordTooShort
 	}
 	if input.AdminName == "" {
-		return domain.ErrUserNameRequired
+		return domain.ErrNameRequired
 	}
 	return nil
 }
 
-//! generateToken génère un JWT token
+// ! generateToken génère un JWT token
 func (uc *schoolUseCase) generateToken(user *domain.User) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id":   user.ID,

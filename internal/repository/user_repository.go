@@ -82,7 +82,7 @@ func (r *userRepository) FindByID(id int) (*domain.User, error) {
 	)
 
 	if err == sql.ErrNoRows {
-		return nil, domain.ErrUserNotFound
+		return nil, domain.ErrNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
@@ -124,7 +124,7 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 	)
 
 	if err == sql.ErrNoRows {
-		return nil, domain.ErrUserNotFound
+		return nil, domain.ErrNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)

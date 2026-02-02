@@ -1,23 +1,32 @@
 package domain
 
-import "time"
+import (
+	"net/mail"
+	"time"
+)
 
-//! School représente l'entité métier École
+// ! School représente l'entité métier École
 type School struct {
-	ID          int `json:"id"`
-	Name        string `json:"name"`
-	Slug        string `json:"slug"`
-	Address     string `json:"address"`
-	Phone       string `json:"phone"`
-	Email       string `json:"email"`
-	LogoURL     string `json:"logo_url"`
-	AdminUserID *int `json:"admin_user_id"`
-	Status      string `json:"status"`
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	Slug        string    `json:"slug"`
+	Address     string    `json:"address"`
+	Phone       string    `json:"phone"`
+	Email       string    `json:"email"`
+	LogoURL     string    `json:"logo_url"`
+	AdminUserID *int      `json:"admin_user_id"`
+	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-//! NewSchool crée une nouvelle école avec validation
+// ! School status constants
+const (
+	SchoolStatusActive   = "active"
+	SchoolStatusInactive = "inactive"
+)
+
+// ! NewSchool crée une nouvelle école avec validation
 func NewSchool(name, slug, address, email, phone string) (*School, error) {
 	if name == "" {
 		return nil, ErrSchoolNameRequired
@@ -25,23 +34,30 @@ func NewSchool(name, slug, address, email, phone string) (*School, error) {
 	if slug == "" {
 		return nil, ErrSchoolSlugRequired
 	}
-
+	if email == "" {
+		return nil, ErrEmailRequired
+	}
+	if email != "" {
+		if _, err := mail.ParseAddress(email); err != nil {
+			return nil, ErrEmailInvalid
+		}
+	}
 	return &School{
 		Name:    name,
 		Slug:    slug,
 		Address: address,
 		Phone:   phone,
 		Email:   email,
-		Status:  "active",
+		Status:  SchoolStatusActive,
 	}, nil
 }
 
-//! SetAdmin définit l'admin de l'école
+// ! SetAdmin définit l'admin de l'école
 func (s *School) SetAdmin(adminID int) {
 	s.AdminUserID = &adminID
 }
 
-//! IsActive vérifie si l'école est active
+// ! IsActive vérifie si l'école est active
 func (s *School) IsActive() bool {
-	return s.Status == "active"
+	return s.Status == SchoolStatusActive
 }

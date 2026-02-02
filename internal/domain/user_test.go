@@ -34,7 +34,7 @@ func TestNewUser(t *testing.T) {
 			firstName:   "John",
 			role:        "teacher",
 			wantErr:     true,
-			expectedErr: ErrUserEmailRequired,
+			expectedErr: ErrEmailRequired,
 		},
 		{
 			name:        "Invalid email",
@@ -44,7 +44,7 @@ func TestNewUser(t *testing.T) {
 			firstName:   "John",
 			role:        "teacher",
 			wantErr:     true,
-			expectedErr: ErrUserEmailInvalid,
+			expectedErr: ErrEmailInvalid,
 		},
 		{
 			name:        "Password too short",
@@ -54,7 +54,7 @@ func TestNewUser(t *testing.T) {
 			firstName:   "John",
 			role:        "teacher",
 			wantErr:     true,
-			expectedErr: ErrUserPasswordTooShort,
+			expectedErr: ErrPasswordTooShort,
 		},
 		{
 			name:        "Empty name",
@@ -64,7 +64,7 @@ func TestNewUser(t *testing.T) {
 			firstName:   "",
 			role:        "teacher",
 			wantErr:     true,
-			expectedErr: ErrUserNameRequired,
+			expectedErr: ErrNameRequired,
 		},
 		{
 			name:        "Invalid role",
@@ -74,7 +74,7 @@ func TestNewUser(t *testing.T) {
 			firstName:   "John",
 			role:        "invalid",
 			wantErr:     true,
-			expectedErr: ErrUserInvalidRole,
+			expectedErr: ErrInvalidRole,
 		},
 	}
 
@@ -210,7 +210,6 @@ func TestUser_GetFullName(t *testing.T) {
 		})
 	}
 }
-
 
 func TestUserRoles(t *testing.T) {
 	tests := []struct {

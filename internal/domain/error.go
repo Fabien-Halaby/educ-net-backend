@@ -2,17 +2,16 @@ package domain
 
 import "fmt"
 
-//! DomainError représente une erreur métier
+// ! DomainError représente une erreur métier
 type DomainError struct {
 	Code    string `json:"code"`
-	Message string `json:"mesage"`
+	Message string `json:"message"`
 }
 
 func (e *DomainError) Error() string {
 	return fmt.Sprintf("[%s] %s", e.Code, e.Message)
 }
 
-//! NewError crée une nouvelle erreur domain
 func NewError(code, message string) *DomainError {
 	return &DomainError{
 		Code:    code,
@@ -20,31 +19,22 @@ func NewError(code, message string) *DomainError {
 	}
 }
 
-//! School errors
+// ! SCHOOL ERRORS (spécifiques école)
 var (
-	ErrSchoolNameRequired     = NewError("SCHOOL_NAME_REQUIRED", "School name is required")
-	ErrSchoolSlugRequired     = NewError("SCHOOL_SLUG_REQUIRED", "School slug is required")
-	ErrSchoolNotFound         = NewError("SCHOOL_NOT_FOUND", "School not found")
-	ErrSchoolAlreadyExists    = NewError("SCHOOL_ALREADY_EXISTS", "School with this name already exists")
+	ErrSchoolNameRequired  = NewError("SCHOOL_NAME_REQUIRED", "School name is required")
+	ErrSchoolSlugRequired  = NewError("SCHOOL_SLUG_REQUIRED", "School slug is required")
+	ErrSchoolNotFound      = NewError("SCHOOL_NOT_FOUND", "School not found")
+	ErrSchoolAlreadyExists = NewError("SCHOOL_ALREADY_EXISTS", "School with this name already exists")
 )
 
-//! User errors
+// ! COMMON ERRORS (génériques - TOUS les usecases)
 var (
-	ErrUserEmailRequired      = NewError("USER_EMAIL_REQUIRED", "Email is required")
-	ErrUserEmailInvalid       = NewError("USER_EMAIL_INVALID", "Email format is invalid")
-	ErrUserPasswordTooShort   = NewError("USER_PASSWORD_TOO_SHORT", "Password must be at least 6 characters")
-	ErrUserNameRequired       = NewError("USER_NAME_REQUIRED", "Name is required")
-	ErrUserInvalidRole        = NewError("USER_INVALID_ROLE", "Invalid role")
-	ErrUserNotFound           = NewError("USER_NOT_FOUND", "User not found")
-	ErrUserAlreadyExists      = NewError("USER_ALREADY_EXISTS", "User with this email already exists")
-	ErrUserInvalidPassword    = NewError("USER_INVALID_PASSWORD", "Invalid password")
-)
-
-//! Authentication errors
-var (
-	ErrInvalidCredentials   = NewError("INVALID_CREDENTIALS", "invalid credentials")
-	ErrEmailAlreadyExists   = NewError("EMAIL_ALREADY_EXISTS", "email already exists")
-	ErrInvalidEmail         = NewError("INVALID_EMAIL", "invalid email format")
-	ErrPasswordTooShort     = NewError("PASSWORD_TOO_SHORT", "password must be at least 8 characters")
-	ErrInvalidRole          = NewError("INVALID_ROLE", "invalid user role")
+	ErrNameRequired       = NewError("NAME_REQUIRED", "Name is required")
+	ErrEmailRequired      = NewError("EMAIL_REQUIRED", "Email is required")
+	ErrEmailInvalid       = NewError("EMAIL_INVALID", "Invalid email format")
+	ErrEmailAlreadyExists = NewError("EMAIL_ALREADY_EXISTS", "Email already exists")
+	ErrPasswordTooShort   = NewError("PASSWORD_TOO_SHORT", "Password must be at least 6 characters")
+	ErrInvalidCredentials = NewError("INVALID_CREDENTIALS", "Invalid credentials")
+	ErrInvalidRole        = NewError("INVALID_ROLE", "Invalid user role")
+	ErrNotFound           = NewError("NOT_FOUND", "Resource not found")
 )

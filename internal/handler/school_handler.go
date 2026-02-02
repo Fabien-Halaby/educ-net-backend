@@ -11,19 +11,19 @@ import (
 	"educnet/internal/utils"
 )
 
-//! SchoolHandler gère les requêtes HTTP liées aux écoles
+// ! SchoolHandler gère les requêtes HTTP liées aux écoles
 type SchoolHandler struct {
 	schoolUseCase usecase.SchoolUseCase
 }
 
-//! NewSchoolHandler crée un nouveau handler
+// ! NewSchoolHandler crée un nouveau handler
 func NewSchoolHandler(schoolUseCase usecase.SchoolUseCase) *SchoolHandler {
 	return &SchoolHandler{
 		schoolUseCase: schoolUseCase,
 	}
 }
 
-//! CreateSchool - POST /api/schools/register
+// ! CreateSchool - POST /api/schools/register
 func (h *SchoolHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
 	//! 1. Parse request
 	var req dto.CreateSchoolRequest
@@ -79,23 +79,23 @@ func (h *SchoolHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
 	utils.Created(w, "School created successfully", response)
 }
 
-//! handleError mappe les erreurs domain vers HTTP status codes
+// ! handleError mappe les erreurs domain vers HTTP status codes
 func (h *SchoolHandler) handleError(w http.ResponseWriter, err error) {
 	log.Println("Error:", err)
 	//! Type assertion vers DomainError
 	if domainErr, ok := err.(*domain.DomainError); ok {
 		switch domainErr {
 		case domain.ErrSchoolNameRequired,
-			domain.ErrUserEmailRequired,
-			domain.ErrUserEmailInvalid,
-			domain.ErrUserPasswordTooShort,
-			domain.ErrUserNameRequired:
+			domain.ErrEmailRequired,
+			domain.ErrEmailInvalid,
+			domain.ErrPasswordTooShort,
+			domain.ErrNameRequired:
 			utils.BadRequest(w, domainErr.Message)
 		case domain.ErrSchoolAlreadyExists,
-			domain.ErrUserAlreadyExists:
+			domain.ErrEmailAlreadyExists:
 			utils.Conflict(w, domainErr.Message)
 		case domain.ErrSchoolNotFound,
-			domain.ErrUserNotFound:
+			domain.ErrNotFound:
 			utils.NotFound(w, domainErr.Message)
 		default:
 			utils.InternalServerError(w, "An error occurred")

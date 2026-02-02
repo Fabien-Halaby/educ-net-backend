@@ -11,6 +11,7 @@ import (
 type SchoolRepository interface {
 	Create(school *domain.School) error
 	Update(school *domain.School) error
+	GetAll() ([]*domain.School, error)
 	FindByID(id int) (*domain.School, error)
 	FindBySlug(slug string) (*domain.School, error)
 	ExistsBySlug(slug string) (bool, error)
@@ -198,4 +199,69 @@ func (r *schoolRepository) UpdateLogo(schoolID int, logoURL string) error {
 	query := `UPDATE schools SET logo_url = $1, updated_at = NOW() WHERE id = $2`
 	_, err := r.db.Exec(query, logoURL, schoolID)
 	return err
+}
+
+// ! GetAll returns all schools in the database
+func (r *schoolRepository) GetAll() ([]*domain.School, error) {
+	query := `
+		SELECT id, name, slug, address, phone, email, logo_url, admin_user_id, status, created_at, updated_at
+		FROM schools
+	`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all schools: %w", err)
+	}
+	defer rows.Close()
+
+	var schools []*domain.School
+
+	for rows.Next() {
+		school := &domain.School{}
+		var address, phone, email, logoURL sql.NullString
+		var adminUserID sql.NullInt64
+
+		err := rows.Scan(
+			&school.ID,
+			&school.Name,
+			&school.Slug,
+			&address,
+			&phone,
+			&email,
+			&logoURL,
+			&adminUserID,
+			&school.Status,
+			&school.CreatedAt,
+			&school.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan school: %w", err)
+		}
+
+		//! Convertir les NULL values
+		if address.Valid {
+			school.Address = address.String
+		}
+		if phone.Valid {
+			school.Phone = phone.String
+		}
+		if email.Valid {
+			school.Email = email.String
+		}
+		if logoURL.Valid {
+			school.LogoURL = logoURL.String
+		}
+		if adminUserID.Valid {
+			id := int(adminUserID.Int64)
+			school.AdminUserID = &id
+		}
+
+		schools = append(schools, school)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return schools, nil
 }
