@@ -7,21 +7,22 @@ import (
 	"educnet/internal/domain"
 )
 
-//! SchoolRepository interface (contrat)
+// ! SchoolRepository interface (contrat)
 type SchoolRepository interface {
 	Create(school *domain.School) error
 	Update(school *domain.School) error
 	FindByID(id int) (*domain.School, error)
 	FindBySlug(slug string) (*domain.School, error)
 	ExistsBySlug(slug string) (bool, error)
+	UpdateLogo(schoolID int, logoURL string) error
 }
 
-//! schoolRepository implémentation
+// ! schoolRepository implémentation
 type schoolRepository struct {
 	db *sql.DB
 }
 
-//! NewSchoolRepository crée un nouveau repository
+// ! NewSchoolRepository crée un nouveau repository
 func NewSchoolRepository(db *sql.DB) SchoolRepository {
 	return &schoolRepository{db: db}
 }
@@ -53,8 +54,8 @@ func (r *schoolRepository) Create(school *domain.School) error {
 func (r *schoolRepository) Update(school *domain.School) error {
 	query := `
 		UPDATE schools 
-		SET name = $1, address = $2, phone = $3, admin_user_id = $4
-		WHERE id = $5
+		SET name = $1, address = $2, phone = $3, email = $4, admin_user_id = $5, updated_at = NOW()
+		WHERE id = $6
 	`
 
 	_, err := r.db.Exec(
@@ -62,6 +63,7 @@ func (r *schoolRepository) Update(school *domain.School) error {
 		school.Name,
 		school.Address,
 		school.Phone,
+		school.Email,
 		school.AdminUserID,
 		school.ID,
 	)
@@ -105,7 +107,7 @@ func (r *schoolRepository) FindByID(id int) (*domain.School, error) {
 		return nil, fmt.Errorf("failed to find school: %w", err)
 	}
 
-	// Convertir les NULL values
+	//! Convertir les NULL values
 	if address.Valid {
 		school.Address = address.String
 	}
@@ -189,4 +191,11 @@ func (r *schoolRepository) ExistsBySlug(slug string) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+// ! UpdateLogo met à jour l'URL du logo de l'école
+func (r *schoolRepository) UpdateLogo(schoolID int, logoURL string) error {
+	query := `UPDATE schools SET logo_url = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.Exec(query, logoURL, schoolID)
+	return err
 }

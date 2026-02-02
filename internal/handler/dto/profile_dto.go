@@ -17,17 +17,17 @@ type ChangePasswordRequest struct {
 
 // ProfileResponse réponse complète du profil
 type ProfileResponse struct {
-	ID        int      `json:"id"`
-	Email     string   `json:"email"`
-	FirstName string   `json:"first_name"`
-	LastName  string   `json:"last_name"`
-	FullName  string   `json:"full_name"`
-	Phone     string   `json:"phone,omitempty"`
-	Role      string   `json:"role"`
-	Status    string   `json:"status"`
-	SchoolID  int      `json:"school_id"`
-	AvatarURL string   `json:"avatar_url,omitempty"`
-	CreatedAt string   `json:"created_at"`
+	ID        int    `json:"id"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	FullName  string `json:"full_name"`
+	Phone     string `json:"phone,omitempty"`
+	Role      string `json:"role"`
+	Status    string `json:"status"`
+	SchoolID  int    `json:"school_id"`
+	AvatarURL string `json:"avatar_url,omitempty"`
+	CreatedAt string `json:"created_at"`
 }
 
 // TeacherSubjectsResponse liste des matières d'un enseignant
@@ -55,4 +55,16 @@ type ClassInfo struct {
 	Section      string `json:"section,omitempty"`
 	Capacity     int    `json:"capacity"`
 	AcademicYear string `json:"academic_year"`
+}
+
+// ! School and Upload DTOs
+type UpdateSchoolRequest struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+}
+
+type UploadResponse struct {
+	URL string `json:"url"`
 }

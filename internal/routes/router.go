@@ -1,12 +1,12 @@
 package routes
 
 import (
+	"database/sql"
 	"educnet/internal/auth"
 	"educnet/internal/handler"
 	"educnet/internal/middleware"
 	"educnet/internal/repository"
 	"educnet/internal/usecase"
-	"database/sql"
 
 	"github.com/gorilla/mux"
 )
@@ -18,7 +18,7 @@ type Handlers struct {
 	Auth    *handler.AuthHandler
 	User    *handler.UserHandler
 	Admin   *handler.AdminHandler
-	Profile *handler.ProfileHandler 
+	Profile *handler.ProfileHandler
 }
 
 func NewRouter(
@@ -40,7 +40,7 @@ func NewRouter(
 	studentUseCase := usecase.NewStudentUseCase(db, userRepo, schoolRepo, classRepo, studentClassRepo)
 	authUseCase := usecase.NewAuthUseCase(userRepo, jwtService)
 	adminUseCase := usecase.NewAdminUseCase(userRepo, teacherSubjectRepo, studentClassRepo, subjectRepo, classRepo)
-	profileUseCase := usecase.NewProfileUseCase(userRepo, subjectRepo, classRepo, teacherSubjectRepo, studentClassRepo)
+	profileUseCase := usecase.NewProfileUseCase(userRepo, subjectRepo, classRepo, teacherSubjectRepo, studentClassRepo, schoolRepo)
 
 	//! ========== HANDLERS ==========
 	handlers := &Handlers{
@@ -64,6 +64,7 @@ func NewRouter(
 	SetupPublicRoutes(api, handlers)
 	SetupUserRoutes(api, handlers, jwtService)
 	SetupAdminRoutes(api, handlers, jwtService)
+	SetupProfileRoutes(api, handlers, jwtService)
 	// SetupTeacherRoutes(api, handlers, jwtService)
 	// SetupStudentRoutes(api, handlers, jwtService)
 

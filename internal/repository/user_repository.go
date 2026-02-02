@@ -7,7 +7,7 @@ import (
 	"educnet/internal/domain"
 )
 
-//! UserRepository interface (contrat)
+// ! UserRepository interface (contrat)
 type UserRepository interface {
 	Create(user *domain.User) error
 	FindByID(id int) (*domain.User, error)
@@ -15,16 +15,17 @@ type UserRepository interface {
 	ExistsByEmail(email string) (bool, error)
 
 	Update(user *domain.User) error
+	UpdateAvatar(userID int, avatarURL string) error
 	FindPendingBySchool(schoolID int) ([]*domain.User, error)
 	FindBySchool(schoolID int, filters map[string]string) ([]*domain.User, error)
 }
 
-//! userRepository implémentation
+// ! userRepository implémentation
 type userRepository struct {
 	db *sql.DB
 }
 
-//! NewUserRepository crée un nouveau repository
+// ! NewUserRepository crée un nouveau repository
 func NewUserRepository(db *sql.DB) UserRepository {
 	return &userRepository{db: db}
 }
@@ -151,23 +152,6 @@ func (r *userRepository) ExistsByEmail(email string) (bool, error) {
 	return exists, nil
 }
 
-
-
-
-// func (r *userRepository) Update(user *domain.User) error {
-// 	query := `
-// 		UPDATE users
-// 		SET status = $1, updated_at = $2
-// 		WHERE id = $3
-// 	`
-
-// 	_, err := r.db.Exec(query, user.Status, user.UpdatedAt, user.ID)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to update user: %w", err)
-// 	}
-
-// 	return nil
-// }
 func (r *userRepository) Update(user *domain.User) error {
 	query := `
 		UPDATE users
@@ -200,6 +184,11 @@ func (r *userRepository) Update(user *domain.User) error {
 	return nil
 }
 
+func (r *userRepository) UpdateAvatar(userID int, avatarURL string) error {
+	query := `UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.Exec(query, avatarURL, userID)
+	return err
+}
 
 func (r *userRepository) FindPendingBySchool(schoolID int) ([]*domain.User, error) {
 	query := `
