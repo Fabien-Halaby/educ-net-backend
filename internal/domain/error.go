@@ -37,4 +37,5 @@ var (
 	ErrInvalidCredentials = NewError("INVALID_CREDENTIALS", "Invalid credentials")
 	ErrInvalidRole        = NewError("INVALID_ROLE", "Invalid user role")
 	ErrNotFound           = NewError("NOT_FOUND", "Resource not found")
+	ErrInvalidPhoneFormat = NewError("INVALID_PHONE_FORMAT", "Phone number format is invalid")
 )

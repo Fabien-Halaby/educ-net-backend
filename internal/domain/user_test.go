@@ -121,7 +121,7 @@ func TestNewUser(t *testing.T) {
 }
 
 func TestNewAdminUser(t *testing.T) {
-	admin, err := NewAdminUser(1, "admin@test.mg", "password123", "Admin", "User", "+261 34")
+	admin, err := NewAdminUser(1, "admin@test.mg", "password123", "Admin", "User", "+261 34 12 345 67")
 
 	if err != nil {
 		t.Fatalf("NewAdminUser() unexpected error = %v", err)
@@ -250,9 +250,10 @@ func TestUserRoles(t *testing.T) {
 }
 
 func TestUserStatus(t *testing.T) {
-	// schoolID int, email, password, firstName, lastName, phone, role string
-	user, _ := NewUser(1, "test@example.com", "password123", "John", "Doe", "+261 34", RoleTeacher)
-
+	user, err := NewUser(1, "test@example.com", "password123", "John", "Doe", "+261 34 12 345 67", RoleTeacher)
+	if err != nil {
+		t.Fatalf("Failed to create user: %v", err)
+	}
 	//! Default status should be pending
 	if user.Status != UserStatusPending {
 		t.Errorf("Expected default status to be pending, got %s", user.Status)

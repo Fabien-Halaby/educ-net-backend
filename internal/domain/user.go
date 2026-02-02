@@ -15,7 +15,7 @@ type User struct {
 	Email        string    `json:"email"`
 	PasswordHash string    `json:"password_hash"`
 	FirstName    string    `json:"first_name"`
-	LastName     string    `json:"lat_name"`
+	LastName     string    `json:"last_name"`
 	Phone        string    `json:"phone"`
 	Role         string    `json:"role"` //! admin, teacher, student, parent
 	AvatarURL    string    `json:"avatar_url"`
