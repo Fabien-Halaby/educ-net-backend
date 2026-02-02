@@ -11,7 +11,7 @@ test:
 
 # Tests unitaires seulement (sans DB)
 test-unit:
-	go test -short -v ./internal/domain ./internal/utils
+	go test -short -v ./internal/domain ./internal/repository
 
 # Tests avec DB seulement
 test-db:
