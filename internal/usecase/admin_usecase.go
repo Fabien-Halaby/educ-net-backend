@@ -4,6 +4,7 @@ import (
 	"educnet/internal/domain"
 	"educnet/internal/handler/dto"
 	"educnet/internal/repository"
+	"log"
 
 	"errors"
 	"fmt"
@@ -20,7 +21,7 @@ type AdminUseCase interface {
 	UpdateSubject(adminUserID, subjectID int, req *dto.UpdateSubjectRequest) (*dto.SubjectResponse, error)
 	DeleteSubject(adminUserID, subjectID int) error
 
-	GetAll(schoolID int) ([]dto.ClassResponse, error)
+	GetAllClasses(schoolID int) ([]dto.ClassResponse, error)
 	CreateClass(adminUserID int, req *dto.CreateClassRequest) (*dto.ClassResponse, error)
 	UpdateClass(adminUserID, classID int, req *dto.UpdateClassRequest) (*dto.ClassResponse, error)
 	DeleteClass(adminUserID, classID int) error
@@ -86,20 +87,26 @@ func (uc *adminUseCase) GetPendingUsers(adminUserID int) (*dto.PendingUsersRespo
 		if user.IsTeacher() {
 			subjects, err := uc.teacherSubjectRepo.FindByTeacher(user.ID)
 			if err != nil {
-				continue
+				subjects = []*domain.Subject{}
 			}
-			subjectIDs := make([]int, len(subjects))
-			for i, subject := range subjects {
-				subjectIDs[i] = subject.ID
+			subjectNames := make([]string, len(subjects))
+			for i, subj := range subjects {
+				subjectNames[i] = subj.Name
 			}
+			userInfo.Subjects = subjectNames
 		}
 
 		//! Add class for students
 		if user.IsStudent() {
-			classInfo, _ := uc.studentClassRepo.FindByStudent(user.ID)
-			if classInfo != nil {
-				userInfo.ClassName = classInfo[0].Name
+			classes, err := uc.studentClassRepo.FindByStudent(user.ID)
+			if err != nil || len(classes) == 0 {
+				classes = []*domain.Class{}
 			}
+			classNames := make([]string, len(classes))
+			for i, cls := range classes {
+				classNames[i] = cls.Name
+			}
+			userInfo.ClassNames = classNames
 		}
 
 		pendingUsers = append(pendingUsers, userInfo)
@@ -361,9 +368,8 @@ func (uc *adminUseCase) GetAllSubjects(schoolID int) ([]dto.SubjectResponse, err
 	return dto.SubjectResponsesFromDomain(subjects), nil
 }
 
-//! ========== CLASSES ==========
-
-func (uc *adminUseCase) GetAll(schoolID int) ([]dto.ClassResponse, error) {
+// ! ========== CLASSES ==========
+func (uc *adminUseCase) GetAllClasses(schoolID int) ([]dto.ClassResponse, error) {
 	classes, err := uc.classRepo.GetAll(schoolID)
 	if err != nil {
 		return nil, err
@@ -504,7 +510,7 @@ func (uc *adminUseCase) DeleteClass(adminUserID, classID int) error {
 }
 
 func (uc *adminUseCase) GetDashboard(adminUserID int) (*dto.DashboardResponse, error) {
-	// 1. Verify admin
+	//! 1. Verify admin
 	admin, err := uc.userRepo.FindByID(adminUserID)
 	if err != nil {
 		return nil, err
@@ -514,13 +520,13 @@ func (uc *adminUseCase) GetDashboard(adminUserID int) (*dto.DashboardResponse, e
 		return nil, errors.New("unauthorized: admin role required")
 	}
 
-	// 2. Get all users from school
+	//! 2. Get all users from school
 	allUsers, err := uc.userRepo.FindBySchool(admin.SchoolID, map[string]string{})
 	if err != nil {
 		return nil, err
 	}
 
-	// 3. Calculate stats
+	//! 3. Calculate stats
 	stats := dto.DashboardStats{}
 	stats.TotalUsers = len(allUsers)
 
@@ -544,14 +550,20 @@ func (uc *adminUseCase) GetDashboard(adminUserID int) (*dto.DashboardResponse, e
 		}
 	}
 
-	// 4. Get subjects and classes count
-	subjects, _ := uc.subjectRepo.FindBySchoolID(admin.SchoolID)
+	//! 4. Get subjects and classes count
+	subjects, err := uc.subjectRepo.FindBySchoolID(admin.SchoolID)
+	if err != nil {
+		return nil, fmt.Errorf("get subjects: %w", err)
+	}
 	stats.TotalSubjects = len(subjects)
 
-	classes, _ := uc.classRepo.FindBySchoolID(admin.SchoolID)
+	classes, err := uc.classRepo.FindBySchoolID(admin.SchoolID)
+	if err != nil {
+		return nil, fmt.Errorf("get classes: %w", err)
+	}
 	stats.TotalClasses = len(classes)
 
-	// 5. Get pending users (limit 5 for dashboard)
+	//! 5. Get pending users (limit 5 for dashboard)
 	pendingUsers, err := uc.userRepo.FindPendingBySchool(admin.SchoolID)
 	if err != nil {
 		return nil, err
@@ -565,7 +577,7 @@ func (uc *adminUseCase) GetDashboard(adminUserID int) (*dto.DashboardResponse, e
 
 	for i := 0; i < limit; i++ {
 		user := pendingUsers[i]
-		pendingList = append(pendingList, dto.PendingUserInfo{
+		pendingInfo := dto.PendingUserInfo{
 			ID:        user.ID,
 			Email:     user.Email,
 			FullName:  user.GetFullName(),
@@ -573,7 +585,35 @@ func (uc *adminUseCase) GetDashboard(adminUserID int) (*dto.DashboardResponse, e
 			Phone:     user.Phone,
 			Status:    user.Status,
 			CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
-		})
+		}
+
+		if user.IsTeacher() {
+			subjects, err := uc.teacherSubjectRepo.FindByTeacher(user.ID)
+			if err != nil {
+				log.Printf("Dashboard warning: %v", err)
+				subjects = []*domain.Subject{}
+			}
+			subjNames := make([]string, len(subjects))
+			for j, subj := range subjects {
+				subjNames[j] = subj.Name
+			}
+			pendingInfo.Subjects = subjNames
+		}
+
+		if user.IsStudent() {
+			classes, err := uc.studentClassRepo.FindByStudent(user.ID)
+			if err != nil {
+				log.Printf("Dashboard warning: %v", err)
+				classes = []*domain.Class{}
+			}
+			classNames := make([]string, len(classes))
+			for j, cls := range classes {
+				classNames[j] = cls.Name
+			}
+			pendingInfo.ClassNames = classNames
+		}
+
+		pendingList = append(pendingList, pendingInfo)
 	}
 
 	return &dto.DashboardResponse{

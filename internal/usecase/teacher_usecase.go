@@ -5,6 +5,7 @@ import (
 	"educnet/internal/domain"
 	"educnet/internal/handler/dto"
 	"educnet/internal/repository"
+	"errors"
 	"fmt"
 )
 
@@ -39,14 +40,17 @@ func NewTeacherUseCase(
 func (uc *teacherUseCase) RegisterTeacher(req *dto.TeacherRegistrationRequest) (*dto.TeacherRegistrationResponse, error) {
 	//! 1. Validate school exists
 	school, err := uc.schoolRepo.FindBySlug(req.SchoolSlug)
+	if errors.Is(err, domain.ErrSchoolNotFound) {
+		return nil, domain.ErrNotFound
+	}
 	if err != nil {
-		return nil, fmt.Errorf("school not found: %w", err)
+		return nil, domain.ErrInternal
 	}
 
 	//! 2. Check if email already exists
 	exists, err := uc.userRepo.ExistsByEmail(req.Email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check email: %w", err)
+		return nil, domain.ErrInternal
 	}
 	if exists {
 		return nil, domain.ErrEmailAlreadyExists
@@ -54,17 +58,20 @@ func (uc *teacherUseCase) RegisterTeacher(req *dto.TeacherRegistrationRequest) (
 
 	//! 3. Validate subjects exist and belong to school
 	if len(req.SubjectIDs) == 0 {
-		return nil, fmt.Errorf("at least one subject is required")
+		return nil, domain.ErrValidation
 	}
 
 	subjectNames := []string{}
 	for _, subjectID := range req.SubjectIDs {
 		subject, err := uc.subjectRepo.FindByID(subjectID)
+		if errors.Is(err, domain.ErrSubjectNotFound) {
+			return nil, domain.ErrNotFound
+		}
 		if err != nil {
-			return nil, fmt.Errorf("subject %d not found: %w", subjectID, err)
+			return nil, domain.ErrInternal
 		}
 		if subject.SchoolID != school.ID {
-			return nil, fmt.Errorf("subject %d does not belong to this school", subjectID)
+			return nil, domain.ErrForbidden
 		}
 		subjectNames = append(subjectNames, subject.Name)
 	}
@@ -72,36 +79,26 @@ func (uc *teacherUseCase) RegisterTeacher(req *dto.TeacherRegistrationRequest) (
 	//! 4. Start transaction
 	tx, err := uc.db.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("failed to start transaction: %w", err)
+		return nil, domain.ErrInternal
 	}
 	defer tx.Rollback()
 
 	//! 5. Create teacher user (status = PENDING)
-	// schoolID int, email, password, firstName, lastName, phone, role string
 	user, err := domain.NewUser(
-		school.ID,
-		req.Email,
-		req.Password,
-		req.FirstName,
-		req.LastName,
-		req.Phone,
-		domain.RoleTeacher,
+		school.ID, req.Email, req.Password, req.FirstName, req.LastName, req.Phone, domain.RoleTeacher,
 	)
-
 	if err != nil {
 		return nil, err
 	}
-	user.Phone = req.Phone
 	user.Status = domain.UserStatusPending
 
 	if err := uc.userRepo.Create(user); err != nil {
 		return nil, fmt.Errorf("failed to create teacher: %w", err)
 	}
 
-	//! 6. Assign subjects
-	teacherSubjectRepo := repository.NewTeacherSubjectRepository(uc.db)
+	//! 6. Assign subjects (utilise repo injecté)
 	for _, subjectID := range req.SubjectIDs {
-		if err := teacherSubjectRepo.Create(user.ID, subjectID); err != nil {
+		if err := uc.teacherSubjectRepo.Create(user.ID, subjectID); err != nil {
 			return nil, fmt.Errorf("failed to assign subject %d: %w", subjectID, err)
 		}
 	}
@@ -117,8 +114,8 @@ func (uc *teacherUseCase) RegisterTeacher(req *dto.TeacherRegistrationRequest) (
 		Email:    user.Email,
 		FullName: user.GetFullName(),
 		SchoolID: school.ID,
-		Status:   string(user.Status),
+		Status:   user.Status,
 		Subjects: subjectNames,
-		Message:  "Teacher registration successful. Your account is pending approval by the school admin.",
+		Message:  "Teacher registration successful. Pending admin approval.",
 	}, nil
 }

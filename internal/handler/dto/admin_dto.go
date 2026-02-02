@@ -8,15 +8,15 @@ type PendingUsersResponse struct {
 }
 
 type PendingUserInfo struct {
-	ID        int      `json:"id"`
-	Email     string   `json:"email"`
-	FullName  string   `json:"full_name"`
-	Role      string   `json:"role"`
-	Phone     string   `json:"phone,omitempty"`
-	Status    string   `json:"status"`
-	CreatedAt string   `json:"created_at"`
-	Subjects  []string `json:"subjects,omitempty"`   //! For teachers
-	ClassName string   `json:"class_name,omitempty"` //! For students
+	ID         int      `json:"id"`
+	Email      string   `json:"email"`
+	FullName   string   `json:"full_name"`
+	Role       string   `json:"role"`
+	Phone      string   `json:"phone,omitempty"`
+	Status     string   `json:"status"`
+	CreatedAt  string   `json:"created_at"`
+	Subjects   []string `json:"subjects,omitempty"`
+	ClassNames []string `json:"class_names,omitempty"`
 }
 
 type ApproveUserRequest struct {
@@ -69,11 +69,11 @@ func SubjectResponsesFromDomain(subjects []*domain.Subject) []SubjectResponse {
 	responses := make([]SubjectResponse, len(subjects))
 	for i, subject := range subjects {
 		responses[i] = SubjectResponse{
-			ID:           subject.ID,
-			Name:         subject.Name,
-			Code:         subject.Code,
-			Description:  subject.Description,
-			SchoolID:	  subject.SchoolID,
+			ID:          subject.ID,
+			Name:        subject.Name,
+			Code:        subject.Code,
+			Description: subject.Description,
+			SchoolID:    subject.SchoolID,
 		}
 	}
 	return responses

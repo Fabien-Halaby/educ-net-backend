@@ -216,8 +216,7 @@ func (h *AdminHandler) GetAllSubjects(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Subjects retrieved", subjects)
 }
 
-
-// ========== CLASSES ==========
+// ! ========== CLASSES ==========
 func (h *AdminHandler) GetAllClasses(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetUserFromContext(r.Context())
 	if !ok {
@@ -225,7 +224,7 @@ func (h *AdminHandler) GetAllClasses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	classes, err := h.adminUC.GetAll(claims.SchoolID)
+	classes, err := h.adminUC.GetAllClasses(claims.SchoolID)
 	if err != nil {
 		utils.BadRequest(w, err.Error())
 		return
@@ -234,7 +233,7 @@ func (h *AdminHandler) GetAllClasses(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Classes retrieved", classes)
 }
 
-// POST /api/admin/classes
+// ! POST /api/admin/classes
 func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetUserFromContext(r.Context())
 	if !ok {
@@ -257,7 +256,7 @@ func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	utils.Created(w, "Class created successfully", resp)
 }
 
-// PUT /api/admin/classes/{id}
+// ! PUT /api/admin/classes/{id}
 func (h *AdminHandler) UpdateClass(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetUserFromContext(r.Context())
 	if !ok {
@@ -287,7 +286,7 @@ func (h *AdminHandler) UpdateClass(w http.ResponseWriter, r *http.Request) {
 	utils.OK(w, "Class updated successfully", resp)
 }
 
-// DELETE /api/admin/classes/{id}
+// ! DELETE /api/admin/classes/{id}
 func (h *AdminHandler) DeleteClass(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetUserFromContext(r.Context())
 	if !ok {

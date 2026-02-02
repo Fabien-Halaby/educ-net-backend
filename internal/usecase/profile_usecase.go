@@ -5,7 +5,6 @@ import (
 	"educnet/internal/handler/dto"
 	"educnet/internal/repository"
 	"errors"
-	"fmt"
 )
 
 type ProfileUseCase interface {
@@ -14,12 +13,12 @@ type ProfileUseCase interface {
 	ChangePassword(userID int, req *dto.ChangePasswordRequest) error
 
 	UpdateAvatar(userID int, avatarURL string) error
-	GetSchool(schoolID int) (*domain.School, error)
-	UpdateSchool(schoolID int, req *dto.UpdateSchoolRequest) (*domain.School, error)
-	UpdateSchoolLogo(schoolID int, logoURL string) error
+	GetSchool(userID, schoolID int) (*domain.School, error)
+	UpdateSchool(userID, schoolID int, req *dto.UpdateSchoolRequest) (*domain.School, error)
+	UpdateSchoolLogo(userID, schoolID int, logoURL string) error
 
 	GetTeacherSubjects(userID int) (*dto.TeacherSubjectsResponse, error)
-	GetStudentClass(userID int) (*dto.StudentClassResponse, error)
+	GetStudentClasses(userID int) (*dto.StudentClassesResponse, error)
 }
 
 type profileUseCase struct {
@@ -52,7 +51,10 @@ func NewProfileUseCase(
 func (uc *profileUseCase) GetProfile(userID int) (*dto.ProfileResponse, error) {
 	user, err := uc.userRepo.FindByID(userID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, domain.ErrInternal
 	}
 
 	return &dto.ProfileResponse{
@@ -74,15 +76,18 @@ func (uc *profileUseCase) UpdateProfile(userID int, req *dto.UpdateProfileReques
 	//! 1. Get user
 	user, err := uc.userRepo.FindByID(userID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, domain.ErrInternal
 	}
 
 	//! 2. Validate input
 	if req.FirstName == "" {
-		return nil, errors.New("first name is required")
+		return nil, domain.ErrNameRequired
 	}
 	if req.LastName == "" {
-		return nil, errors.New("last name is required")
+		return nil, domain.ErrNameRequired
 	}
 
 	//! 3. Update fields
@@ -105,16 +110,16 @@ func (uc *profileUseCase) UpdateProfile(userID int, req *dto.UpdateProfileReques
 func (uc *profileUseCase) ChangePassword(userID int, req *dto.ChangePasswordRequest) error {
 	//! 1. Validate input
 	if req.CurrentPassword == "" {
-		return errors.New("current password is required")
+		return domain.ErrPasswordRequired
 	}
 	if req.NewPassword == "" {
-		return errors.New("new password is required")
+		return domain.ErrPasswordRequired
 	}
 	if req.NewPassword != req.ConfirmPassword {
-		return errors.New("passwords do not match")
+		return domain.ErrPasswordDontMatch
 	}
 	if len(req.NewPassword) < 8 {
-		return errors.New("new password must be at least 8 characters")
+		return domain.ErrPasswordTooShort
 	}
 
 	//! 2. Get user
@@ -125,7 +130,7 @@ func (uc *profileUseCase) ChangePassword(userID int, req *dto.ChangePasswordRequ
 
 	//! 3. Verify current password
 	if !user.VerifyPassword(req.CurrentPassword) {
-		return errors.New("current password is incorrect")
+		return domain.ErrInvalidCredentials
 	}
 
 	//! 4. Hash new password
@@ -141,11 +146,26 @@ func (uc *profileUseCase) UpdateAvatar(userID int, avatarURL string) error {
 	return uc.userRepo.UpdateAvatar(userID, avatarURL)
 }
 
-func (uc *profileUseCase) GetSchool(schoolID int) (*domain.School, error) {
+func (uc *profileUseCase) GetSchool(userID, schoolID int) (*domain.School, error) {
+	user, err := uc.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user.SchoolID != schoolID {
+		return nil, domain.ErrUnauthorized
+	}
 	return uc.schoolRepo.FindByID(schoolID)
 }
 
-func (uc *profileUseCase) UpdateSchool(schoolID int, req *dto.UpdateSchoolRequest) (*domain.School, error) {
+func (uc *profileUseCase) UpdateSchool(userID, schoolID int, req *dto.UpdateSchoolRequest) (*domain.School, error) {
+	user, err := uc.userRepo.FindByID(userID)
+	if err != nil || !user.IsAdmin() {
+		return nil, domain.ErrForbidden
+	}
+	if user.SchoolID != schoolID {
+		return nil, domain.ErrUnauthorized
+	}
+
 	school, err := uc.schoolRepo.FindByID(schoolID)
 	if err != nil {
 		return nil, err
@@ -171,41 +191,36 @@ func (uc *profileUseCase) UpdateSchool(schoolID int, req *dto.UpdateSchoolReques
 	return school, nil
 }
 
-func (uc *profileUseCase) UpdateSchoolLogo(schoolID int, logoURL string) error {
+func (uc *profileUseCase) UpdateSchoolLogo(userID, schoolID int, logoURL string) error {
+	user, err := uc.userRepo.FindByID(userID)
+	if err != nil || !user.IsAdmin() {
+		return domain.ErrForbidden
+	}
+	if user.SchoolID != schoolID {
+		return domain.ErrForbidden
+	}
 	return uc.schoolRepo.UpdateLogo(schoolID, logoURL)
 }
 
 func (uc *profileUseCase) GetTeacherSubjects(userID int) (*dto.TeacherSubjectsResponse, error) {
-	// 1. Get user and verify it's a teacher
 	user, err := uc.userRepo.FindByID(userID)
-	if err != nil {
-		return nil, err
+	if err != nil || !user.IsTeacher() {
+		return nil, domain.ErrForbidden
 	}
 
-	if !user.IsTeacher() {
-		return nil, errors.New("user is not a teacher")
-	}
-
-	// 2. Get teacher's subject IDs
 	subjects, err := uc.teacherSubjectRepo.FindByTeacher(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 3. Get subject details
-	subjectsInfo := []dto.SubjectInfo{}
-	for _, subject := range subjects {
-		subject, err := uc.subjectRepo.FindByID(subject.ID)
-		if err != nil {
-			continue
+	subjectsInfo := make([]dto.SubjectInfo, len(subjects))
+	for i, subj := range subjects {
+		subjectsInfo[i] = dto.SubjectInfo{
+			ID:          subj.ID,
+			Name:        subj.Name,
+			Code:        subj.Code,
+			Description: subj.Description,
 		}
-
-		subjectsInfo = append(subjectsInfo, dto.SubjectInfo{
-			ID:          subject.ID,
-			Name:        subject.Name,
-			Code:        subject.Code,
-			Description: subject.Description,
-		})
 	}
 
 	return &dto.TeacherSubjectsResponse{
@@ -214,41 +229,31 @@ func (uc *profileUseCase) GetTeacherSubjects(userID int) (*dto.TeacherSubjectsRe
 	}, nil
 }
 
-func (uc *profileUseCase) GetStudentClass(userID int) (*dto.StudentClassResponse, error) {
-	// 1. Get user and verify it's a student
+func (uc *profileUseCase) GetStudentClasses(userID int) (*dto.StudentClassesResponse, error) {
 	user, err := uc.userRepo.FindByID(userID)
+	if err != nil || !user.IsStudent() {
+		return nil, domain.ErrForbidden
+	}
+
+	classes, err := uc.studentClassRepo.FindByStudent(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !user.IsStudent() {
-		return nil, errors.New("user is not a student")
-	}
-
-	// 2. Get student's class
-	classInfo, err := uc.studentClassRepo.FindByClass(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	if classInfo == nil {
-		return nil, fmt.Errorf("student not assigned to any class")
-	}
-
-	// 3. Get class details
-	class, err := uc.classRepo.FindByID(classInfo[0].ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &dto.StudentClassResponse{
-		Class: &dto.ClassInfo{
+	classesInfo := make([]*dto.ClassInfo, len(classes))
+	for i, class := range classes {
+		classesInfo[i] = &dto.ClassInfo{
 			ID:           class.ID,
 			Name:         class.Name,
 			Level:        class.Level,
 			Section:      class.Section,
 			Capacity:     class.Capacity,
 			AcademicYear: class.AcademicYear,
-		},
+		}
+	}
+
+	return &dto.StudentClassesResponse{
+		Classes: classesInfo,
+		Total:   len(classesInfo),
 	}, nil
 }

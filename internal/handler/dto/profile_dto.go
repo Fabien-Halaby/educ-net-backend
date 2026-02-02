@@ -44,8 +44,9 @@ type SubjectInfo struct {
 }
 
 // StudentClassResponse classe d'un étudiant
-type StudentClassResponse struct {
-	Class *ClassInfo `json:"class"`
+type StudentClassesResponse struct {
+	Classes []*ClassInfo `json:"classes"`
+	Total   int          `json:"total"`
 }
 
 type ClassInfo struct {

@@ -29,14 +29,20 @@ var (
 
 // ! COMMON ERRORS
 var (
+	ErrUnauthorized       = NewError("UBAUTHORIZED", "User unauthorized")
+	ErrForbidden          = NewError("FORBIDDEN", "Access forbidden")
+	ErrInternal           = NewError("INTERNAL", "internal error")
 	ErrNameRequired       = NewError("NAME_REQUIRED", "Name is required")
 	ErrEmailRequired      = NewError("EMAIL_REQUIRED", "Email is required")
 	ErrEmailInvalid       = NewError("EMAIL_INVALID", "Invalid email format")
 	ErrEmailAlreadyExists = NewError("EMAIL_ALREADY_EXISTS", "Email already exists")
 	ErrPasswordTooShort   = NewError("PASSWORD_TOO_SHORT", "Password must be at least 6 characters")
+	ErrPasswordRequired   = NewError("PASSWORD_REQUIRED", "Password is required")
+	ErrPasswordDontMatch  = NewError("PASSWORD_DONT_MATCH", "Password doesn't match")
 	ErrInvalidCredentials = NewError("INVALID_CREDENTIALS", "Invalid credentials")
 	ErrInvalidRole        = NewError("INVALID_ROLE", "Invalid user role")
 	ErrNotFound           = NewError("NOT_FOUND", "Resource not found")
+	ErrValidation         = NewError("VALIDATION", "Validation failed")
 	ErrInvalidPhoneFormat = NewError("INVALID_PHONE_FORMAT", "Phone number format is invalid")
 )
 

@@ -162,7 +162,7 @@ func (h *ProfileHandler) GetSchool(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	school, err := h.profileUC.GetSchool(user.SchoolID)
+	school, err := h.profileUC.GetSchool(user.ID, user.SchoolID)
 	if err != nil {
 		utils.NotFound(w, "School not found")
 		return
@@ -185,7 +185,7 @@ func (h *ProfileHandler) UpdateSchool(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get user to get school_id
+	//! Get user to get school_id
 	user, err := h.profileUC.GetProfile(claims.UserID)
 	if err != nil {
 		utils.NotFound(w, "User not found")
@@ -198,7 +198,7 @@ func (h *ProfileHandler) UpdateSchool(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	school, err := h.profileUC.UpdateSchool(user.SchoolID, &req)
+	school, err := h.profileUC.UpdateSchool(user.ID, user.SchoolID, &req)
 	if err != nil {
 		utils.BadRequest(w, err.Error())
 		return
@@ -274,7 +274,7 @@ func (h *ProfileHandler) UploadSchoolLogo(w http.ResponseWriter, r *http.Request
 
 	// Update database
 	logoURL := fmt.Sprintf("/uploads/logos/%s", filename)
-	if err := h.profileUC.UpdateSchoolLogo(user.SchoolID, logoURL); err != nil {
+	if err := h.profileUC.UpdateSchoolLogo(user.ID, user.SchoolID, logoURL); err != nil {
 		utils.InternalServerError(w, "Failed to update logo")
 		return
 	}
@@ -307,7 +307,7 @@ func (h *ProfileHandler) GetMyClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	class, err := h.profileUC.GetStudentClass(claims.UserID)
+	class, err := h.profileUC.GetStudentClasses(claims.UserID)
 	if err != nil {
 		utils.BadRequest(w, err.Error())
 		return

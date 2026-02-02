@@ -5,6 +5,7 @@ import (
 	"educnet/internal/domain"
 	"educnet/internal/handler/dto"
 	"educnet/internal/repository"
+	"errors"
 	"fmt"
 )
 
@@ -39,14 +40,17 @@ func NewStudentUseCase(
 func (uc *studentUseCase) RegisterStudent(req *dto.StudentRegistrationRequest) (*dto.StudentRegistrationResponse, error) {
 	//! 1. Validate school exists
 	school, err := uc.schoolRepo.FindBySlug(req.SchoolSlug)
+	if errors.Is(err, domain.ErrSchoolNotFound) {
+		return nil, domain.ErrNotFound
+	}
 	if err != nil {
-		return nil, fmt.Errorf("school not found: %w", err)
+		return nil, domain.ErrInternal
 	}
 
 	//! 2. Check if email already exists
 	exists, err := uc.userRepo.ExistsByEmail(req.Email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check email: %w", err)
+		return nil, domain.ErrInternal
 	}
 	if exists {
 		return nil, domain.ErrEmailAlreadyExists
@@ -54,35 +58,30 @@ func (uc *studentUseCase) RegisterStudent(req *dto.StudentRegistrationRequest) (
 
 	//! 3. Validate class exists and belongs to school
 	class, err := uc.classRepo.FindByID(req.ClassID)
+	if errors.Is(err, domain.ErrClassNotFound) {
+		return nil, domain.ErrNotFound
+	}
 	if err != nil {
-		return nil, fmt.Errorf("class not found: %w", err)
+		return nil, domain.ErrInternal
 	}
 	if class.SchoolID != school.ID {
-		return nil, fmt.Errorf("class does not belong to this school")
+		return nil, domain.ErrForbidden
 	}
 
 	//! 4. Start transaction
 	tx, err := uc.db.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("failed to start transaction: %w", err)
+		return nil, domain.ErrInternal
 	}
 	defer tx.Rollback()
 
 	//! 5. Create student user (status = PENDING)
-	// schoolID int, email, password, firstName, lastName, phone, role string
 	user, err := domain.NewUser(
-		school.ID,
-		req.Email,
-		req.Password,
-		req.FirstName,
-		req.LastName,
-		req.Phone,
-		domain.RoleStudent,
+		school.ID, req.Email, req.Password, req.FirstName, req.LastName, req.Phone, domain.RoleStudent,
 	)
 	if err != nil {
 		return nil, err
 	}
-	user.Phone = req.Phone
 	user.Status = domain.UserStatusPending
 
 	if err := uc.userRepo.Create(user); err != nil {
@@ -105,8 +104,8 @@ func (uc *studentUseCase) RegisterStudent(req *dto.StudentRegistrationRequest) (
 		Email:     user.Email,
 		FullName:  user.GetFullName(),
 		SchoolID:  school.ID,
-		Status:    string(user.Status),
+		Status:    user.Status,
 		ClassName: class.Name,
-		Message:   "Student registration successful. Your account is pending approval by the school admin.",
+		Message:   "Student registration successful. Pending admin approval.",
 	}, nil
 }
