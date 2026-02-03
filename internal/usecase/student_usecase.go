@@ -11,6 +11,8 @@ import (
 
 type StudentUseCase interface {
 	RegisterStudent(req *dto.StudentRegistrationRequest) (*dto.StudentRegistrationResponse, error)
+
+	GetStudentClasses(studentID int) ([]dto.ClassResponse, error)
 }
 
 type studentUseCase struct {
@@ -108,4 +110,21 @@ func (uc *studentUseCase) RegisterStudent(req *dto.StudentRegistrationRequest) (
 		ClassName: class.Name,
 		Message:   "Student registration successful. Pending admin approval.",
 	}, nil
+}
+
+func (uc *studentUseCase) GetStudentClasses(studentID int) ([]dto.ClassResponse, error) {
+	user, err := uc.userRepo.FindByID(studentID)
+	if err != nil {
+		return nil, domain.ErrUserNotFound
+	}
+	if !user.IsStudent() {
+		return nil, domain.ErrForbidden
+	}
+
+	classes, err := uc.studentClassRepo.FindByStudent(studentID)
+	if err != nil {
+		return nil, domain.ErrInternal
+	}
+
+	return dto.ClassResponsesFromDomain(classes), nil
 }

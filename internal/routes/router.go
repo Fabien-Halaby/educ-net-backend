@@ -65,8 +65,8 @@ func NewRouter(
 	SetupUserRoutes(api, handlers, jwtService)
 	SetupAdminRoutes(api, handlers, jwtService)
 	SetupProfileRoutes(api, handlers, jwtService)
-	// SetupTeacherRoutes(api, handlers, jwtService)
-	// SetupStudentRoutes(api, handlers, jwtService)
+	SetupTeacherRoutes(api, handlers, jwtService)
+	SetupStudentRoutes(api, handlers, jwtService)
 
 	return r
 }

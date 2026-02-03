@@ -63,6 +63,7 @@ import (
 	"net/http"
 
 	"educnet/internal/handler/dto"
+	"educnet/internal/middleware"
 	"educnet/internal/usecase"
 	"educnet/internal/utils"
 )
@@ -90,4 +91,20 @@ func (h *StudentHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Created(w, "Student registered successfully", resp)
+}
+
+func (h *StudentHandler) GetMyClasses(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	classes, err := h.studentUC.GetStudentClasses(claims.UserID)
+	if err != nil {
+		utils.HandleUseCaseError(w, err)
+		return
+	}
+
+	utils.OK(w, "Classes retrieved", classes)
 }

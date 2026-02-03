@@ -11,6 +11,8 @@ import (
 
 type TeacherUseCase interface {
 	RegisterTeacher(req *dto.TeacherRegistrationRequest) (*dto.TeacherRegistrationResponse, error)
+
+	GetTeacherSubjects(teacherID int) ([]dto.SubjectResponse, error)
 }
 
 type teacherUseCase struct {
@@ -118,4 +120,21 @@ func (uc *teacherUseCase) RegisterTeacher(req *dto.TeacherRegistrationRequest) (
 		Subjects: subjectNames,
 		Message:  "Teacher registration successful. Pending admin approval.",
 	}, nil
+}
+
+func (uc *teacherUseCase) GetTeacherSubjects(teacherID int) ([]dto.SubjectResponse, error) {
+	user, err := uc.userRepo.FindByID(teacherID)
+	if err != nil {
+		return nil, domain.ErrUserNotFound
+	}
+	if !user.IsTeacher() {
+		return nil, domain.ErrForbidden
+	}
+
+	subjects, err := uc.teacherSubjectRepo.FindByTeacher(teacherID)
+	if err != nil {
+		return nil, domain.ErrInternal
+	}
+
+	return dto.SubjectResponsesFromDomain(subjects), nil
 }

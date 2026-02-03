@@ -63,6 +63,7 @@ import (
 	"net/http"
 
 	"educnet/internal/handler/dto"
+	"educnet/internal/middleware"
 	"educnet/internal/usecase"
 	"educnet/internal/utils"
 )
@@ -90,4 +91,20 @@ func (h *TeacherHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Created(w, "Teacher registered successfully", resp)
+}
+
+func (h *TeacherHandler) GetMySubjects(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	subjects, err := h.teacherUC.GetTeacherSubjects(claims.UserID)
+	if err != nil {
+		utils.HandleUseCaseError(w, err)
+		return
+	}
+
+	utils.OK(w, "Subjects retrieved", subjects)
 }

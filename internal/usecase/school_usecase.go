@@ -14,12 +14,12 @@ import (
 
 // ! CreateSchoolInput DTO d'entrée
 type CreateSchoolInput struct {
-	SchoolName    string
-	AdminEmail    string
-	AdminPassword string
-	AdminName     string
-	Phone         string
-	Address       string
+	SchoolName    string `json:"school_name"`
+	AdminEmail    string `json:"admin_email"`
+	AdminPassword string `json:"admin_password"`
+	AdminName     string `json:"admin_name"`
+	Phone         string `json:"phone"`
+	Address       string `json:"address"`
 }
 
 // ! CreateSchoolOutput DTO de sortie
@@ -87,7 +87,7 @@ func (uc *schoolUseCase) CreateSchool(input CreateSchoolInput) (*CreateSchoolOut
 
 	//! 5. Séparer prénom et nom
 	firstName, lastName := utils.SplitFullName(input.AdminName)
-
+	fmt.Println("SCHOOL_NAME: ", input)
 	//! 6. Créer entités domain (avec validation métier)
 	school, err := domain.NewSchool(
 		input.SchoolName,

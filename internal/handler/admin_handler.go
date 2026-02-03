@@ -341,6 +341,25 @@ import (
 	"github.com/gorilla/mux"
 )
 
+/*
+	====== ALL HANDLERS ======
+
+	func (h *AdminHandler) ApproveUser(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) CreateSubject(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) DeleteClass(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) DeleteSubject(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) GetAllClasses(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) GetAllSubjects(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) GetAllUsers(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) GetPendingUsers(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) RejectUser(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) UpdateClass(w http.ResponseWriter, r *http.Request)
+	func (h *AdminHandler) UpdateSubject(w http.ResponseWriter, r *http.Request)
+
+*/
+
 type AdminHandler struct {
 	adminUC usecase.AdminUseCase
 }
@@ -353,17 +372,17 @@ func NewAdminHandler(adminUC usecase.AdminUseCase) *AdminHandler {
 func (h *AdminHandler) GetPendingUsers(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetUserFromContext(r.Context())
 	if !ok {
-		utils.Unauthorized(w, "Unauthorized") // 401
+		utils.Unauthorized(w, "Unauthorized")
 		return
 	}
 
 	resp, err := h.adminUC.GetPendingUsers(claims.UserID)
 	if err != nil {
-		utils.HandleUseCaseError(w, err) // 403/404/500
+		utils.HandleUseCaseError(w, err)
 		return
 	}
 
-	utils.OK(w, "Pending users retrieved", resp) // 200
+	utils.OK(w, "Pending users retrieved", resp)
 }
 
 // POST /api/admin/users/{id}/approve
@@ -407,7 +426,7 @@ func (h *AdminHandler) RejectUser(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Reason string `json:"reason"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { // ✅ FIX
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.BadRequest(w, "Invalid request body")
 		return
 	}
@@ -460,7 +479,7 @@ func (h *AdminHandler) CreateSubject(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.adminUC.CreateSubject(claims.UserID, &req)
 	if err != nil {
-		utils.HandleUseCaseError(w, err) // ✅ FIX
+		utils.HandleUseCaseError(w, err)
 		return
 	}
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"educnet/internal/usecase"
@@ -83,13 +84,15 @@ func (h *SchoolHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("SCHOOL: ", input)
+
 	output, err := h.schoolUseCase.CreateSchool(input)
 	if err != nil {
-		utils.HandleUseCaseError(w, err) // ✅ 409/422/500 auto
+		utils.HandleUseCaseError(w, err)
 		return
 	}
 
-	utils.Created(w, "School created successfully", output) // ✅ JSON auto
+	utils.Created(w, "School created successfully", output)
 }
 
 // ! handleError mappe les erreurs domain vers HTTP status codes

@@ -15,17 +15,17 @@ func SetupStudentRoutes(api *mux.Router, h *Handlers, jwtService *auth.JWTServic
 	student.Use(middleware.RoleRequired("student")) // À créer
 
 	// ========== MY CLASS ==========
-	// student.HandleFunc("/class", h.Student.GetMyClass).Methods("GET")
-	
+	student.HandleFunc("/classes", h.Student.GetMyClasses).Methods("GET")
+
 	// ========== MY SUBJECTS ==========
 	// student.HandleFunc("/subjects", h.Student.GetMySubjects).Methods("GET")
-	
+
 	// ========== MY GRADES ==========
 	// student.HandleFunc("/grades", h.Student.GetMyGrades).Methods("GET")
-	
+
 	// ========== MY ATTENDANCE ==========
 	// student.HandleFunc("/attendance", h.Student.GetMyAttendance).Methods("GET")
-	
+
 	// ========== MY TEACHERS ==========
 	// student.HandleFunc("/teachers", h.Student.GetMyTeachers).Methods("GET")
 }

@@ -10,7 +10,7 @@ import (
 type SubjectRepository interface {
 	Create(subject *domain.Subject) error
 	FindByID(id int) (*domain.Subject, error)
-	FindBySchoolID(schoolID int) ([]*domain.Subject, error) // GetAll(schoolID)
+	FindBySchoolID(schoolID int) ([]*domain.Subject, error)
 	FindBySchoolAndCode(schoolID int, code string) (*domain.Subject, error)
 	Update(subject *domain.Subject) error
 	Delete(id int) error
