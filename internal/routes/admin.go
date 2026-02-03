@@ -35,6 +35,6 @@ func SetupAdminRoutes(api *mux.Router, h *Handlers, jwtService *auth.JWTService)
 	admin.HandleFunc("/classes/{id}", h.Admin.DeleteClass).Methods("DELETE")
 
 	// ========== DASHBOARD & STATS ==========
-	admin.HandleFunc("/dashboard", h.Admin.GetDashboard).Methods("GET") // À venir
+	admin.HandleFunc("/dashboard", h.Admin.GetDashboard).Methods("GET")
 	// admin.HandleFunc("/stats", h.Admin.GetStats).Methods("GET")                   // À venir
 }
