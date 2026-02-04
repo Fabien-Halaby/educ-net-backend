@@ -1,8 +1,11 @@
 package dto
 
-import "time"
+import (
+	"educnet/internal/domain"
+	"time"
+)
 
-//! CreateSchoolRequest DTO de requête HTTP
+// ! CreateSchoolRequest DTO de requête HTTP
 type CreateSchoolRequest struct {
 	SchoolName    string `json:"school_name"`
 	AdminEmail    string `json:"admin_email"`
@@ -12,14 +15,14 @@ type CreateSchoolRequest struct {
 	Address       string `json:"address"`
 }
 
-//! CreateSchoolResponse DTO de réponse HTTP
+// ! CreateSchoolResponse DTO de réponse HTTP
 type CreateSchoolResponse struct {
 	School SchoolDTO `json:"school"`
 	Admin  UserDTO   `json:"admin"`
 	Token  string    `json:"token"`
 }
 
-//! SchoolDTO représentation HTTP d'une école
+// ! SchoolDTO représentation HTTP d'une école
 type SchoolDTO struct {
 	ID          int       `json:"id"`
 	Name        string    `json:"name"`
@@ -31,7 +34,20 @@ type SchoolDTO struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-//! UserDTO représentation HTTP d'un utilisateur
+func SchoolDTOFromDomain(school *domain.School) *SchoolDTO {
+	return &SchoolDTO{
+		ID:          school.ID,
+		Name:        school.Name,
+		Slug:        school.Slug,
+		Address:     school.Address,
+		Phone:       school.Phone,
+		Status:      school.Status,
+		AdminUserID: school.AdminUserID,
+		CreatedAt:   school.CreatedAt,
+	}
+}
+
+// ! UserDTO représentation HTTP d'un utilisateur
 type UserDTO struct {
 	ID        int       `json:"id"`
 	SchoolID  int       `json:"school_id"`

@@ -21,62 +21,6 @@ func NewSchoolHandler(schoolUseCase usecase.SchoolUseCase) *SchoolHandler {
 	}
 }
 
-// ! CreateSchool - POST /api/schools/register
-// func (h *SchoolHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
-// 	//! 1. Parse request
-// 	var req dto.CreateSchoolRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		utils.BadRequest(w, "Invalid request body")
-// 		return
-// 	}
-
-// 	//! 2. Mapper vers use case input
-// 	input := usecase.CreateSchoolInput{
-// 		SchoolName:    req.SchoolName,
-// 		AdminEmail:    req.AdminEmail,
-// 		AdminPassword: req.AdminPassword,
-// 		AdminName:     req.AdminName,
-// 		Phone:         req.Phone,
-// 		Address:       req.Address,
-// 	}
-
-// 	//! 3. Exécuter use case
-// 	output, err := h.schoolUseCase.CreateSchool(input)
-// 	if err != nil {
-// 		h.handleError(w, err)
-// 		return
-// 	}
-
-// 	//! 4. Mapper vers response DTO
-// 	response := dto.CreateSchoolResponse{
-// 		School: dto.SchoolDTO{
-// 			ID:          output.School.ID,
-// 			Name:        output.School.Name,
-// 			Slug:        output.School.Slug,
-// 			Address:     output.School.Address,
-// 			Phone:       output.School.Phone,
-// 			Status:      output.School.Status,
-// 			AdminUserID: output.School.AdminUserID,
-// 			CreatedAt:   output.School.CreatedAt,
-// 		},
-// 		Admin: dto.UserDTO{
-// 			ID:        output.Admin.ID,
-// 			SchoolID:  output.Admin.SchoolID,
-// 			Email:     output.Admin.Email,
-// 			FirstName: output.Admin.FirstName,
-// 			LastName:  output.Admin.LastName,
-// 			Phone:     output.Admin.Phone,
-// 			Role:      output.Admin.Role,
-// 			Status:    output.Admin.Status,
-// 			CreatedAt: output.Admin.CreatedAt,
-// 		},
-// 		Token: output.Token,
-// 	}
-
-// 	//! 5. Répondre avec succès
-// 	utils.Created(w, "School created successfully", response)
-// }
-
 func (h *SchoolHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
 	var input usecase.CreateSchoolInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -93,6 +37,15 @@ func (h *SchoolHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Created(w, "School created successfully", output)
+}
+
+func (h *SchoolHandler) GetAllSchool(w http.ResponseWriter, r *http.Request) {
+	out, err := h.schoolUseCase.GetAllSchool()
+	if err != nil {
+		utils.HandleUseCaseError(w, err)
+	}
+
+	utils.OK(w, "Schools retrieved successfully", out)
 }
 
 // ! handleError mappe les erreurs domain vers HTTP status codes

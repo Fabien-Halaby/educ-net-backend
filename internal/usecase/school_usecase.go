@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"educnet/internal/domain"
+	"educnet/internal/handler/dto"
 	"educnet/internal/repository"
 	"educnet/internal/utils"
 )
@@ -32,6 +33,7 @@ type CreateSchoolOutput struct {
 // ! SchoolUseCase interface
 type SchoolUseCase interface {
 	CreateSchool(input CreateSchoolInput) (*CreateSchoolOutput, error)
+	GetAllSchool() ([]*dto.SchoolDTO, error)
 }
 
 // ! schoolUseCase implémentation
@@ -153,6 +155,21 @@ func (uc *schoolUseCase) CreateSchool(input CreateSchoolInput) (*CreateSchoolOut
 		Admin:  admin,
 		Token:  token,
 	}, nil
+}
+
+// ! GetAllSchool retourne toute les écoles
+func (uc *schoolUseCase) GetAllSchool() ([]*dto.SchoolDTO, error) {
+	schools, err := uc.schoolRepo.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR_GETTING_ALL_SCHOOL]: %w", err)
+	}
+
+	var resp []*dto.SchoolDTO
+	for _, s := range schools {
+		resp = append(resp, dto.SchoolDTOFromDomain(s))
+	}
+
+	return resp, nil
 }
 
 // ! validateInput valide l'input

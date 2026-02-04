@@ -20,7 +20,10 @@ func SetupPublicRoutes(api *mux.Router, h *Handlers) {
 	//! Authentication
 	api.HandleFunc("/auth/login", h.Auth.Login).Methods("POST")
 	// api.HandleFunc("/auth/refresh", h.Auth.RefreshToken).Methods("POST")  // À venir
-	// api.HandleFunc("/auth/logout", h.Auth.Logout).Methods("POST")         // À venir
+	// api.HandleFunc("/auth/logout", h.Auth.Logout).Methods("POST")
+
+	//! School
+	api.HandleFunc("/schools", h.School.GetAllSchool).Methods("GET")
 }
 
 // ! health handler
