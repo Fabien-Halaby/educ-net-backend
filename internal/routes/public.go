@@ -24,6 +24,13 @@ func SetupPublicRoutes(api *mux.Router, h *Handlers) {
 
 	//! School
 	api.HandleFunc("/schools", h.School.GetAllSchool).Methods("GET")
+
+	//! Class
+	api.HandleFunc("/classes/{schoolId}", h.Class.GetClassesBySchoolID).Methods("GET")
+
+	//! Subject
+	api.HandleFunc("/subjects/{schoolId}", h.Subject.GetSubjectsBySchoolID).Methods("GET")
+
 }
 
 // ! health handler

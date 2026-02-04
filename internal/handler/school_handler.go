@@ -43,6 +43,7 @@ func (h *SchoolHandler) GetAllSchool(w http.ResponseWriter, r *http.Request) {
 	out, err := h.schoolUseCase.GetAllSchool()
 	if err != nil {
 		utils.HandleUseCaseError(w, err)
+		return
 	}
 
 	utils.OK(w, "Schools retrieved successfully", out)

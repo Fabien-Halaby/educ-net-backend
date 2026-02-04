@@ -1,5 +1,7 @@
 package dto
 
+import "educnet/internal/domain"
+
 // UpdateProfileRequest pour modifier le profil
 type UpdateProfileRequest struct {
 	FirstName string `json:"first_name"`
@@ -43,6 +45,15 @@ type SubjectInfo struct {
 	Description string `json:"description,omitempty"`
 }
 
+func SubjectInfoFromDomain(subject *domain.Subject) *SubjectInfo {
+	return &SubjectInfo{
+		ID:          subject.ID,
+		Name:        subject.Name,
+		Code:        subject.Code,
+		Description: subject.Description,
+	}
+}
+
 // StudentClassResponse classe d'un étudiant
 type StudentClassesResponse struct {
 	Classes []*ClassInfo `json:"classes"`
@@ -56,6 +67,17 @@ type ClassInfo struct {
 	Section      string `json:"section,omitempty"`
 	Capacity     int    `json:"capacity"`
 	AcademicYear string `json:"academic_year"`
+}
+
+func ClassInfoFromDomain(class *domain.Class) *ClassInfo {
+	return &ClassInfo{
+		ID:           class.ID,
+		Name:         class.Name,
+		Level:        class.Level,
+		Section:      class.Section,
+		Capacity:     class.Capacity,
+		AcademicYear: class.AcademicYear,
+	}
 }
 
 // ! School and Upload DTOs
