@@ -42,7 +42,7 @@ func main() {
 	classRepo := repository.NewClassRepository(database)
 	teacherSubjectRepo := repository.NewTeacherSubjectRepository(database)
 	studentClassRepo := repository.NewStudentClassRepository(database)
-
+	messageRepository := repository.NewMessageRepository(database)
 	//! 5. Setup router (all routes configured in routes package)
 	router := routes.NewRouter(
 		database,
@@ -54,6 +54,7 @@ func main() {
 		classRepo,
 		teacherSubjectRepo,
 		studentClassRepo,
+		messageRepository,
 	)
 
 	handler := middleware.CORS(router)

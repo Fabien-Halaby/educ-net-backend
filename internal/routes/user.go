@@ -18,7 +18,7 @@ func SetupUserRoutes(api *mux.Router, h *Handlers, jwtService *auth.JWTService) 
 
 	//! Role-specific
 	protected.HandleFunc("/me/subjects", h.Profile.GetMySubjects).Methods("GET") // Teachers
-	protected.HandleFunc("/me/class", h.Profile.GetMyClass).Methods("GET")       // Students
+	protected.HandleFunc("/me/classes", h.Profile.GetMyClass).Methods("GET")     // Students
 	// Subjects & Classes (à implémenter plus tard via AdminHandler)
 	// protected.HandleFunc("/subjects", h.Subject.List).Methods("GET")
 	// protected.HandleFunc("/subjects/{id}", h.Subject.GetByID).Methods("GET")

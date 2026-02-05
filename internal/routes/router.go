@@ -21,6 +21,7 @@ type Handlers struct {
 	Profile *handler.ProfileHandler
 	Class   *handler.ClassHandler
 	Subject *handler.SubjectHandler
+	Chat    *handler.ChatHandler
 }
 
 func NewRouter(
@@ -34,6 +35,7 @@ func NewRouter(
 	classRepo repository.ClassRepository,
 	teacherSubjectRepo repository.TeacherSubjectRepository,
 	studentClassRepo repository.StudentClassRepository,
+	messageRepository repository.MessageRepository,
 ) *mux.Router {
 
 	//! ========== USECASES ==========
@@ -45,6 +47,7 @@ func NewRouter(
 	profileUseCase := usecase.NewProfileUseCase(userRepo, subjectRepo, classRepo, teacherSubjectRepo, studentClassRepo, schoolRepo)
 	classUsecase := usecase.NewClassUsecase(classRepo)
 	subjectUsecase := usecase.NewSubjectUsecase(subjectRepo)
+	messageUsecase := usecase.NewMessageUseCase(messageRepository)
 	//! ========== HANDLERS ==========
 	handlers := &Handlers{
 		School:  handler.NewSchoolHandler(schoolUseCase),
@@ -56,6 +59,7 @@ func NewRouter(
 		Profile: handler.NewProfileHandler(profileUseCase),
 		Class:   handler.NewClassHandler(classUsecase),
 		Subject: handler.NewSubjectHandler(subjectUsecase),
+		Chat:    handler.NewChatHandler(messageUsecase),
 	}
 
 	r := mux.NewRouter()
@@ -72,6 +76,7 @@ func NewRouter(
 	SetupProfileRoutes(api, handlers, jwtService)
 	SetupTeacherRoutes(api, handlers, jwtService)
 	SetupStudentRoutes(api, handlers, jwtService)
+	SetupWebSocketRoutes(api, handlers, jwtService)
 
 	return r
 }
